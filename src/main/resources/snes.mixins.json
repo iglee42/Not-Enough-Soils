@@ -1,10 +1,11 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "fr.iglee42.notenoughsoils.mixin",
-  "compatibilityLevel": "JAVA_8",
+  "package": "fr.iglee42.notenoughsoils.mixins",
+  "compatibilityLevel": "JAVA_17",
   "refmap": "nes.refmap.json",
   "mixins": [
+    "BlockMixin"
   ],
   "client": [
   ],

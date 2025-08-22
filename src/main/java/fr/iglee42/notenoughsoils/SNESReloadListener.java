@@ -1,4 +1,19 @@
 package fr.iglee42.notenoughsoils;
 
-public class SNESReloadListener {
+import com.mojang.logging.LogUtils;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
+
+import java.io.IOException;
+
+public class SNESReloadListener implements ResourceManagerReloadListener {
+    @Override
+    public void onResourceManagerReload(ResourceManager rm) {
+        try {
+            NotEnoughSoils.reloadConfig();
+            LogUtils.getLogger().info("Successfully reloaded SNES and modified soils for {} plants", NotEnoughSoils.SOILS.size());
+        } catch (Exception e) {
+            LogUtils.getLogger().error("Failed to reload SNES: ", e);
+        }
+    }
 }

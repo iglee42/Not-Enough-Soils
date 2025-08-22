@@ -1,6 +1,5 @@
 package fr.iglee42.notenoughsoils;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -9,7 +8,7 @@ import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
-public class SNSMixinConfig implements IMixinConfigPlugin{
+public class SNESMixinConfig implements IMixinConfigPlugin{
 
 
     @Override

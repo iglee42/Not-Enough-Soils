@@ -1,8 +1,12 @@
 package fr.iglee42.notenoughsoils;
 
+import com.google.gson.*;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
@@ -14,8 +18,11 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -24,95 +31,90 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
+import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 
-// The value here should match an entry in the META-INF/mods.toml file
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.*;
+
 @Mod(NotEnoughSoils.MODID)
 public class NotEnoughSoils {
 
-    // Define mod id in a common place for everything to reference
-    public static final String MODID = "nes";
-    // Directly reference a slf4j logger
+    public static final String MODID = "snes";
     private static final Logger LOGGER = LogUtils.getLogger();
-    // Create a Deferred Register to hold Blocks which will all be registered under the "nes" namespace
-    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
-    // Create a Deferred Register to hold Items which will all be registered under the "nes" namespace
-    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
-    // Create a Deferred Register to hold CreativeModeTabs which will all be registered under the "nes" namespace
-    public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
-
-    // Creates a new Block with the id "nes:example_block", combining the namespace and path
-    public static final RegistryObject<Block> EXAMPLE_BLOCK = BLOCKS.register("example_block", () -> new Block(BlockBehaviour.Properties.of().mapColor(MapColor.STONE)));
-    // Creates a new BlockItem with the id "nes:example_block", combining the namespace and path
-    public static final RegistryObject<Item> EXAMPLE_BLOCK_ITEM = ITEMS.register("example_block", () -> new BlockItem(EXAMPLE_BLOCK.get(), new Item.Properties()));
-
-    // Creates a new food item with the id "nes:example_id", nutrition 1 and saturation 2
-    public static final RegistryObject<Item> EXAMPLE_ITEM = ITEMS.register("example_item", () -> new Item(new Item.Properties().food(new FoodProperties.Builder().alwaysEat().nutrition(1).saturationMod(2f).build())));
-
-    // Creates a creative tab with the id "nes:example_tab" for the example item, that is placed after the combat tab
-    public static final RegistryObject<CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder().withTabsBefore(CreativeModeTabs.COMBAT).icon(() -> EXAMPLE_ITEM.get().getDefaultInstance()).displayItems((parameters, output) -> {
-        output.accept(EXAMPLE_ITEM.get()); // Add the example item to the tab. For your own tabs, this method is preferred over the event
-    }).build());
+    public static HashMap<Block,List<Block>> SOILS;
+    private static File configFile;
 
     public NotEnoughSoils() {
+        SOILS = new HashMap<>();
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
-        // Register the commonSetup method for modloading
-        modEventBus.addListener(this::commonSetup);
+        MinecraftForge.EVENT_BUS.addListener(this::cropGrow);
+        MinecraftForge.EVENT_BUS.addListener(this::addReloadListener);
 
-        // Register the Deferred Register to the mod event bus so blocks get registered
-        BLOCKS.register(modEventBus);
-        // Register the Deferred Register to the mod event bus so items get registered
-        ITEMS.register(modEventBus);
-        // Register the Deferred Register to the mod event bus so tabs get registered
-        CREATIVE_MODE_TABS.register(modEventBus);
-
-        // Register ourselves for server and other game events we are interested in
-        MinecraftForge.EVENT_BUS.register(this);
-
-        // Register the item to a creative tab
-        modEventBus.addListener(this::addCreative);
-
-        // Register our mod's ForgeConfigSpec so that Forge can create and load the config file for us
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 
-    private void commonSetup(final FMLCommonSetupEvent event) {
-        // Some common setup code
-        LOGGER.info("HELLO FROM COMMON SETUP");
-        LOGGER.info("DIRT BLOCK >> {}", ForgeRegistries.BLOCKS.getKey(Blocks.DIRT));
 
-        if (Config.logDirtBlock) LOGGER.info("DIRT BLOCK >> {}", ForgeRegistries.BLOCKS.getKey(Blocks.DIRT));
+    protected static void reloadConfig() throws IOException, JsonParseException {
+        SOILS.clear();
+        configFile = new File(FMLPaths.CONFIGDIR.get().toFile(),"snes-soils.json");
+        if (configFile.exists()){
+            JsonObject config = new Gson().fromJson(new FileReader(configFile),JsonObject.class);
+            config.keySet().forEach(k->{
+                ResourceLocation key = ResourceLocation.parse(k);
+                Optional<Holder<Block>> optional = ForgeRegistries.BLOCKS.getHolder(key);
+                if (optional.isEmpty()) throw new JsonParseException("Invalid block key in SNES config file : " + key);
 
-        LOGGER.info(Config.magicNumberIntroduction + Config.magicNumber);
+                if (config.get(k).isJsonArray()){
 
-        Config.items.forEach((item) -> LOGGER.info("ITEM >> {}", item.toString()));
-    }
-
-    // Add the example block item to the building blocks tab
-    private void addCreative(BuildCreativeModeTabContentsEvent event) {
-        if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) event.accept(EXAMPLE_BLOCK_ITEM);
-    }
-
-    // You can use SubscribeEvent and let the Event Bus discover methods to call
-    @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event) {
-        // Do something when the server starts
-        LOGGER.info("HELLO from server starting");
-    }
-
-    // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
-    @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-    public static class ClientModEvents {
-
-        @SubscribeEvent
-        public static void onClientSetup(FMLClientSetupEvent event) {
-            // Some client setup code
-            LOGGER.info("HELLO FROM CLIENT SETUP");
-            LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
+                    ArrayList<Block> blocks = new ArrayList<>();
+                    for (JsonElement j : config.getAsJsonArray(k)) {
+                        if (j.isJsonPrimitive() && j.getAsJsonPrimitive().isString()){
+                            ResourceLocation value = ResourceLocation.parse( j.getAsJsonPrimitive().getAsString());
+                            Optional<Holder<Block>> optionalValue = ForgeRegistries.BLOCKS.getHolder(value);
+                            if (optionalValue.isEmpty())
+                                LOGGER.error("Invalid block value for {} in SNES config file : {}", key, value);
+                            else blocks.add(optionalValue.get().get());
+                        } else {
+                            LOGGER.error("A value in the array for {} isn't a string, ignoring it...", key);
+                        }
+                    }
+                    SOILS.put(optional.get().get(), blocks);
+                } else if (config.get(k).isJsonPrimitive() && config.get(k).getAsJsonPrimitive().isString()){
+                    ResourceLocation value = ResourceLocation.parse( config.get(k).getAsJsonPrimitive().getAsString());
+                    Optional<Holder<Block>> optionalValue = ForgeRegistries.BLOCKS.getHolder(value);
+                    if (optionalValue.isEmpty()) throw new JsonParseException("Invalid block value for "+key+" in SNES config file : " + value);
+                    SOILS.put(optional.get().get(), List.of(optionalValue.get().get()));
+                } else {
+                    throw new JsonParseException("Value for " + key + " in SNES config file isn't an array or a string");
+                }
+            });
+        } else {
+            FileWriter writer = new FileWriter(configFile);
+            writer.write(new Gson().toJson(new JsonObject()));
+            writer.close();
         }
     }
+
+    private void addReloadListener(AddReloadListenerEvent event){
+        event.addListener(new SNESReloadListener());
+    }
+
+    private void cropGrow(final BlockEvent.CropGrowEvent.Pre event) {
+        if (!SOILS.containsKey(event.getState().getBlock())) return;
+
+        List<Block> requiredSoil = SOILS.get(event.getState().getBlock());
+        if (!requiredSoil.contains(event.getLevel().getBlockState(event.getPos().below()).getBlock())) {
+            event.setResult(Event.Result.DENY);
+        }
+    }
+
+
 }
