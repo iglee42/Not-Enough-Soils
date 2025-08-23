@@ -4,8 +4,13 @@
   "package": "fr.iglee42.notenoughsoils.mixins",
   "compatibilityLevel": "JAVA_17",
   "refmap": "nes.refmap.json",
+  "plugin": "fr.iglee42.notenoughsoils.SNESMixinConfig",
   "mixins": [
-    "BlockMixin"
+    "BlockMixin",
+    "mscustomization.CropCreatorMixin",
+    "mscustomization.CropModifierMixin",
+    "mystical.CropMixin",
+    "mystical.CruxRecipeMixin"
   ],
   "client": [
   ],
