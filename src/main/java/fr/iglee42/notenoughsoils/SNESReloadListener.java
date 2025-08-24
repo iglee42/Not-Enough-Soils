@@ -3,7 +3,7 @@ package fr.iglee42.notenoughsoils;
 import com.mojang.logging.LogUtils;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModList;
 
 import java.io.IOException;
 
