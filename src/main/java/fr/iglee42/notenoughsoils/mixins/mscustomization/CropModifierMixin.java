@@ -11,7 +11,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import fr.iglee42.notenoughsoils.CropWithSoils;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.spongepowered.asm.mixin.Mixin;
@@ -32,26 +35,45 @@ public class CropModifierMixin {
     private static void snes$readCustomSoils(Crop crop, JsonObject json, CallbackInfo ci){
 
         CropWithSoils castedCrop = (CropWithSoils) crop;
-
         if (json.has("soils")) {
             if (json.get("soils").isJsonArray()) {
                 ArrayList<Block> blocks = new ArrayList<>();
                 for (JsonElement j : json.getAsJsonArray("soils")) {
                     if (j.isJsonPrimitive() && j.getAsJsonPrimitive().isString()) {
-                        ResourceLocation value = ResourceLocation.parse(j.getAsJsonPrimitive().getAsString());
-                        Optional<Holder<Block>> optionalValue = ForgeRegistries.BLOCKS.getHolder(value);
-                        if (optionalValue.isEmpty())
-                            throw new JsonParseException("Invalid soil value : " + value);
-                        else blocks.add(optionalValue.get().get());
+                        String strValue = j.getAsJsonPrimitive().getAsString();
+                        if (strValue.startsWith("#")){
+                            TagKey<Block> blockTagKey = TagKey.create(Registries.BLOCK,ResourceLocation.parse(strValue.substring(1)));
+                                List<Block> tagBlocks = ForgeRegistries.BLOCKS.tags() == null || ForgeRegistries.BLOCKS.tags().getTag(blockTagKey).isEmpty() ? new ArrayList<>(): ForgeRegistries.BLOCKS.tags().getTag(blockTagKey).stream().toList();
+                            if (!tagBlocks.isEmpty()){
+                                blocks.addAll(List.copyOf(tagBlocks));
+                            }
+                        } else {
+                            ResourceLocation value = ResourceLocation.parse(j.getAsJsonPrimitive().getAsString());
+                            Optional<Holder<Block>> optionalValue = ForgeRegistries.BLOCKS.getHolder(value);
+                            if (optionalValue.isEmpty())
+                                throw new JsonParseException("Invalid soil value : " + value);
+                            else blocks.add(optionalValue.get().get());
+                        }
                     }
                 }
                 castedCrop.snes$setCustomSoils(blocks);
             } else if (json.get("soils").isJsonPrimitive() && json.get("soils").getAsJsonPrimitive().isString()) {
-                ResourceLocation value = ResourceLocation.parse(json.get("soils").getAsJsonPrimitive().getAsString());
-                Optional<Holder<Block>> optionalValue = ForgeRegistries.BLOCKS.getHolder(value);
-                if (optionalValue.isEmpty())
-                    throw new JsonParseException("Invalid soil value : " + value);
-                castedCrop.snes$setCustomSoils(List.of(optionalValue.get().get()));
+                String strValue = json.get("soils").getAsJsonPrimitive().getAsString();
+                if (strValue.startsWith("#")){
+                    TagKey<Block> blockTagKey = TagKey.create(Registries.BLOCK,ResourceLocation.parse(strValue.substring(1)));
+                        List<Block> blocks = ForgeRegistries.BLOCKS.tags() == null || ForgeRegistries.BLOCKS.tags().getTag(blockTagKey).isEmpty() ? new ArrayList<>(): ForgeRegistries.BLOCKS.tags().getTag(blockTagKey).stream().toList();
+                    if (!blocks.isEmpty()){
+                        castedCrop.snes$setCustomSoils( List.copyOf(blocks));
+                    } else {
+                        throw new JsonParseException("Tag "+blockTagKey.location()+" is empty or doesn't exist");
+                    }
+                } else {
+                    ResourceLocation value = ResourceLocation.parse(strValue);
+                    Optional<Holder<Block>> optionalValue = ForgeRegistries.BLOCKS.getHolder(value);
+                    if (optionalValue.isEmpty())
+                        throw new JsonParseException("Invalid soil value : " + value);
+                    castedCrop.snes$setCustomSoils(List.of(optionalValue.get().get()));
+                }
             } else {
                 throw new JsonParseException("\"soils\" isn't an array or a string");
             }

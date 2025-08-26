@@ -7,6 +7,7 @@
   "plugin": "fr.iglee42.notenoughsoils.SNESMixinConfig",
   "mixins": [
     "BlockMixin",
+    "BushBlockMixin",
     "mscustomization.CropCreatorMixin",
     "mscustomization.CropModifierMixin",
     "mystical.CropMixin",

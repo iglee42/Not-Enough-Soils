@@ -7,6 +7,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
@@ -77,21 +78,42 @@ public class NotEnoughSoils {
                     ArrayList<Block> blocks = new ArrayList<>();
                     for (JsonElement j : config.getAsJsonArray(k)) {
                         if (j.isJsonPrimitive() && j.getAsJsonPrimitive().isString()){
-                            ResourceLocation value = ResourceLocation.parse( j.getAsJsonPrimitive().getAsString());
-                            Optional<Holder<Block>> optionalValue = ForgeRegistries.BLOCKS.getHolder(value);
-                            if (optionalValue.isEmpty())
-                                LOGGER.error("Invalid block value for {} in SNES config file : {}", key, value);
-                            else blocks.add(optionalValue.get().get());
+                            String strValue = j.getAsJsonPrimitive().getAsString();
+                            if (strValue.startsWith("#")){
+                                TagKey<Block> blockTagKey = TagKey.create(Registries.BLOCK,ResourceLocation.parse(strValue.substring(1)));
+                                List<Block> tagBlocks = ForgeRegistries.BLOCKS.tags() == null || ForgeRegistries.BLOCKS.tags().getTag(blockTagKey).isEmpty() ? new ArrayList<>(): ForgeRegistries.BLOCKS.tags().getTag(blockTagKey).stream().toList();
+                                if (!tagBlocks.isEmpty()){
+                                    blocks.addAll(List.copyOf(tagBlocks));
+                                }
+                            } else {
+                                ResourceLocation value = ResourceLocation.parse(strValue);
+                                Optional<Holder<Block>> optionalValue = ForgeRegistries.BLOCKS.getHolder(value);
+                                if (optionalValue.isEmpty())
+                                    LOGGER.error("Invalid block value for {} in SNES config file : {}", key, value);
+                                else blocks.add(optionalValue.get().get());
+                            }
                         } else {
                             LOGGER.error("A value in the array for {} isn't a string, ignoring it...", key);
                         }
                     }
                     SOILS.put(optional.get().get(), blocks);
                 } else if (config.get(k).isJsonPrimitive() && config.get(k).getAsJsonPrimitive().isString()){
-                    ResourceLocation value = ResourceLocation.parse( config.get(k).getAsJsonPrimitive().getAsString());
-                    Optional<Holder<Block>> optionalValue = ForgeRegistries.BLOCKS.getHolder(value);
-                    if (optionalValue.isEmpty()) throw new JsonParseException("Invalid block value for "+key+" in SNES config file : " + value);
-                    SOILS.put(optional.get().get(), List.of(optionalValue.get().get()));
+                    String strValue = config.get(k).getAsJsonPrimitive().getAsString();
+                    if (strValue.startsWith("#")){
+                        TagKey<Block> blockTagKey = TagKey.create(Registries.BLOCK,ResourceLocation.parse(strValue.substring(1)));
+                        List<Block> blocks = ForgeRegistries.BLOCKS.tags() == null || ForgeRegistries.BLOCKS.tags().getTag(blockTagKey).isEmpty() ? new ArrayList<>(): ForgeRegistries.BLOCKS.tags().getTag(blockTagKey).stream().toList();
+                        if (!blocks.isEmpty()){
+                            SOILS.put(optional.get().get(), List.copyOf(blocks));
+                        } else {
+                            throw new JsonParseException("Tag "+blockTagKey.location()+" for " + key + " in SNES config file is empty or doesn't exist");
+                        }
+                    } else {
+                        ResourceLocation value = ResourceLocation.parse(strValue);
+                        Optional<Holder<Block>> optionalValue = ForgeRegistries.BLOCKS.getHolder(value);
+                        if (optionalValue.isEmpty()) throw new JsonParseException("Invalid block value for "+key+" in SNES config file : " + value);
+                        SOILS.put(optional.get().get(), List.of(optionalValue.get().get()));
+                    }
+
                 } else {
                     throw new JsonParseException("Value for " + key + " in SNES config file isn't an array or a string");
                 }
