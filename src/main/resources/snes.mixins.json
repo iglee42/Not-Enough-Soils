@@ -6,6 +6,7 @@
   "refmap": "snes.refmap.json",
   "plugin": "fr.iglee42.notenoughsoils.SNESMixinConfig",
   "mixins": [
+    "BushBlockMixin",
     "IBlockExtensionMixin",
     "mscustomization.CropCreatorMixin",
     "mscustomization.CropModifierMixin",
