@@ -1,11 +1,13 @@
-package fr.iglee42.notenoughsoils.mixins.mscustomization;
+package fr.iglee42.modpackutilities.mixins.soils.mscustomization;
 
 import com.blakebr0.mysticalagriculture.api.crop.Crop;
-import com.blakebr0.mysticalcustomization.modify.CropModifier;
+import com.blakebr0.mysticalagriculture.api.lib.LazyIngredient;
+import com.blakebr0.mysticalcustomization.create.CropCreator;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import fr.iglee42.notenoughsoils.CropWithSoils;
+import fr.iglee42.modpackutilities.modules.soils.CropWithSoils;
+import fr.iglee42.modpackutilities.utils.RequiresMods;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -15,22 +17,21 @@ import net.minecraft.world.level.block.Block;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@Mixin(value = CropModifier.class,remap = false)
-public class CropModifierMixin {
+@RequiresMods({"mysticalcustomization"})
+@Mixin(value = CropCreator.class,remap = false)
+public class CropCreatorMixin {
 
-    @Inject(method = "modify",at=@At(value = "HEAD"),locals = LocalCapture.CAPTURE_FAILSOFT)
-    private static void snes$readCustomSoils(Crop crop, JsonObject json, CallbackInfo ci){
-
-        CropWithSoils castedCrop = (CropWithSoils) crop;
-
+    @Inject(method = "create",at= @At(value = "RETURN",ordinal = 0),locals = LocalCapture.CAPTURE_FAILSOFT)
+    private static void snes$readCustomSoils(ResourceLocation id, JsonObject json, CallbackInfoReturnable<Crop> cir, JsonObject ingredient, LazyIngredient material, Crop crop){
         if (json.has("soils")) {
+            CropWithSoils castedCrop = (CropWithSoils) crop;
             if (json.get("soils").isJsonArray()) {
                 ArrayList<Block> blocks = new ArrayList<>();
                 for (JsonElement j : json.getAsJsonArray("soils")) {

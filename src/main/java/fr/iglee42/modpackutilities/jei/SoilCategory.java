@@ -1,10 +1,6 @@
-package fr.iglee42.notenoughsoils.jei;
+package fr.iglee42.modpackutilities.jei;
 
-import com.blakebr0.cucumber.util.Localizable;
-import com.blakebr0.mysticalagriculture.MysticalAgriculture;
-import com.blakebr0.mysticalagriculture.compat.jei.CruxRecipe;
-import com.blakebr0.mysticalagriculture.init.ModItems;
-import fr.iglee42.notenoughsoils.NotEnoughSoils;
+import fr.iglee42.modpackutilities.IgleeModpackUtilities;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -16,12 +12,11 @@ import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 public class SoilCategory implements IRecipeCategory<SoilRecipe> {
-    public static final RecipeType<SoilRecipe> RECIPE_TYPE = RecipeType.create(NotEnoughSoils.MODID, "soils", SoilRecipe.class);
+    public static final RecipeType<SoilRecipe> RECIPE_TYPE = RecipeType.create(IgleeModpackUtilities.MODID, "soils", SoilRecipe.class);
 
     private final IDrawable background;
     private final IDrawable icon;

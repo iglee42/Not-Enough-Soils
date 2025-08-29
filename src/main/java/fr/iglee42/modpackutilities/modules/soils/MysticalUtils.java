@@ -1,8 +1,9 @@
-package fr.iglee42.notenoughsoils;
+package fr.iglee42.modpackutilities.modules.soils;
 
 import com.blakebr0.mysticalagriculture.api.MysticalAgricultureAPI;
 import com.blakebr0.mysticalagriculture.registry.CropRegistry;
-import fr.iglee42.notenoughsoils.jei.SoilRecipe;
+import fr.iglee42.modpackutilities.IgleeModpackUtilities;
+import fr.iglee42.modpackutilities.jei.SoilRecipe;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -14,9 +15,12 @@ import java.util.Set;
 
 public class MysticalUtils {
     public static void reloadCropsSoils() {
+        SoilsModule module = IgleeModpackUtilities.getModule(SoilsModule.class);
+        if (module == null) return;
         MysticalAgricultureAPI.getCropRegistry().getCrops().forEach(c->{
             if (c instanceof CropWithSoils casted){
-                if (casted.snes$getCustomSoils() != null && !casted.snes$getCustomSoils().isEmpty())NotEnoughSoils.SOILS.put(c.getCropBlock(),casted.snes$getCustomSoils());
+                if (casted.snes$getCustomSoils() != null && !casted.snes$getCustomSoils().isEmpty())
+                    module.SOILS.put(c.getCropBlock(),casted.snes$getCustomSoils());
             }
         });
     }

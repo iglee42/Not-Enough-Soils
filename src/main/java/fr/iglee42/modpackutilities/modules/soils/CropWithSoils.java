@@ -1,4 +1,4 @@
-package fr.iglee42.notenoughsoils;
+package fr.iglee42.modpackutilities.modules.soils;
 
 import net.minecraft.world.level.block.Block;
 

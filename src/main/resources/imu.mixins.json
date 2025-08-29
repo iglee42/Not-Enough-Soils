@@ -1,0 +1,24 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "fr.iglee42.modpackutilities.mixins",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "imu.refmap.json",
+  "plugin": "fr.iglee42.modpackutilities.IMUMixinConfig",
+  "mixins": [
+    "soils.BushBlockMixin",
+    "soils.IBlockExtensionMixin",
+    "soils.mscustomization.CropCreatorMixin",
+    "soils.mscustomization.CropModifierMixin",
+    "soils.mystical.CropMixin",
+    "soils.mystical.CruxRecipeMixin"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}

@@ -118,9 +118,15 @@ repositories {
     maven {
         url 'https://maven.blakesmods.com'
     }
+
+    maven {
+        url 'https://maven.iglee.fr/releases'
+    }
 }
 
 dependencies {
+
+    implementation "fr.iglee42:IgleeLib:${minecraft_version}-${lib_version}"
 
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
