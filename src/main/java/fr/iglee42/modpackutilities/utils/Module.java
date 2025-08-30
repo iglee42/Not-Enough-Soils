@@ -3,14 +3,17 @@ package fr.iglee42.modpackutilities.utils;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import fr.iglee42.modpackutilities.IgleeModpackUtilities;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.loading.FMLPaths;
-import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.function.Consumer;
 
 public abstract class Module {
 
@@ -30,8 +33,13 @@ public abstract class Module {
         isLoaded = loaded;
     }
 
-    public void init(IEventBus modEventBus, IEventBus forgeEventBus){
-        IgleeModpackUtilities.LOGGER.info("Module {} loaded ",getName());
+    public void init(IEventBus modEventBus, IEventBus forgeEventBus) throws Exception{
+        IgleeModpackUtilities.LOGGER.info("Loading {} module... ",getName());
+        if (getReloadListener() != null) forgeEventBus.addListener(this::addReloadListener);
+    }
+
+    private void addReloadListener(AddReloadListenerEvent event){
+        if (getReloadListener() != null) event.addListener((ResourceManagerReloadListener) resourceManager -> getReloadListener().accept(resourceManager));
     }
 
     public String getName() {
@@ -55,8 +63,9 @@ public abstract class Module {
                 }
             } else {
                 try (FileWriter writer = new FileWriter(configFile)) {
-                    writer.write(new Gson().toJson( new JsonObject()));
-                    return new JsonObject();
+                    JsonObject defaultConfig = getDefaultConfig();
+                    writer.write(new Gson().toJson(defaultConfig));
+                    return defaultConfig;
                 } catch (IOException ignored) {
                 }
             }
@@ -65,4 +74,12 @@ public abstract class Module {
     }
 
     public void generateAssetsForPack(){}
+
+    protected JsonObject getDefaultConfig(){
+        return new JsonObject();
+    }
+
+    protected Consumer<ResourceManager> getReloadListener(){
+        return null;
+    }
 }

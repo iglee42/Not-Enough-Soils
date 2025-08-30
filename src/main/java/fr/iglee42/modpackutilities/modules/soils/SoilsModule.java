@@ -4,14 +4,17 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.mojang.logging.LogUtils;
+import fr.iglee42.modpackutilities.IgleeModpackUtilities;
 import fr.iglee42.modpackutilities.utils.Module;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.level.block.CropGrowEvent;
@@ -20,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public class SoilsModule extends Module {
     public HashMap<Block, List<Block>> SOILS;
@@ -30,14 +34,9 @@ public class SoilsModule extends Module {
     }
 
     @Override
-    public void init(IEventBus modEventBus, IEventBus forgeEventBus) {
+    public void init(IEventBus modEventBus, IEventBus forgeEventBus) throws Exception {
         super.init(modEventBus, forgeEventBus);
-        NeoForge.EVENT_BUS.addListener(this::cropGrow);
-        NeoForge.EVENT_BUS.addListener(this::addReloadListener);
-    }
-
-    private void addReloadListener(AddReloadListenerEvent event) {
-        event.addListener(new SoilsReloadListener());
+        forgeEventBus.addListener(this::cropGrow);
     }
 
     private void cropGrow(final CropGrowEvent.Pre event) {
@@ -107,5 +106,20 @@ public class SoilsModule extends Module {
                 throw new JsonParseException("Value for " + key + " in IMU Soils config file isn't an array or a string");
             }
         });
+    }
+
+    @Override
+    protected Consumer<ResourceManager> getReloadListener() {
+        return rm->{
+            SoilsModule module = IgleeModpackUtilities.getModule(SoilsModule.class);
+            if (module == null) return;
+            try {
+                module.reloadConfig();
+                if (ModList.get().isLoaded("mysticalagriculture")) MysticalUtils.reloadCropsSoils();
+                LogUtils.getLogger().info("Successfully reloaded IMU soils and modified soils for {} plants", module.SOILS.size());
+            } catch (Exception e) {
+                LogUtils.getLogger().error("Failed to reload IMU soils: ", e);
+            }
+        };
     }
 }

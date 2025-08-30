@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.mojang.logging.LogUtils;
+import fr.iglee42.modpackutilities.modules.compressed.CompressedModule;
 import fr.iglee42.modpackutilities.modules.soils.SoilsModule;
 import fr.iglee42.modpackutilities.resourcepack.IMUPackFinder;
 import fr.iglee42.modpackutilities.resourcepack.CustomPackType;
@@ -52,12 +53,19 @@ public class IgleeModpackUtilities {
     }
 
     private static void initModules(IEventBus modEventBus) {
-        MODULES.stream().filter(Module::isLoaded).forEach(m->m.init(modEventBus, NeoForge.EVENT_BUS));
+        MODULES.stream().filter(Module::isLoaded).forEach(m->{
+            try {
+                m.init(modEventBus, NeoForge.EVENT_BUS);
+            } catch (Exception e){
+                LOGGER.error("Failed to load {} module : {}",m.getName(),e);
+            }
+        });
     }
 
     protected static void loadModules() {
         MODULES = new ArrayList<>();
         MODULES.add(new SoilsModule());
+        MODULES.add(new CompressedModule());
         configFile = new File(FMLPaths.CONFIGDIR.get().toFile(),MODID+"/modules.json");
         configFile.getParentFile().mkdirs();
 
@@ -73,7 +81,7 @@ public class IgleeModpackUtilities {
                         try (FileWriter writer = new FileWriter(configFile)){
                             config.addProperty(m.getName(),true);
                             m.setLoaded(true);
-                            writer.write(new Gson().toJson(config));
+                            writer.write(new GsonBuilder().setPrettyPrinting().create().toJson(config));
                         } catch (IOException ignored) {}
                     }
                 });
