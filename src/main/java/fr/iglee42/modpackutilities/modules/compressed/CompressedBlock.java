@@ -81,6 +81,10 @@ public class CompressedBlock {
         return Map.of();
     }
 
+    public ResourceLocation getCustomBaseModel() {
+        return customBaseModel;
+    }
+
     public void deserialize(JsonObject json) {
         if (json.has("customModel")) {
             if (json.get("customModel").isJsonPrimitive() && json.getAsJsonPrimitive("customModel").isString()){

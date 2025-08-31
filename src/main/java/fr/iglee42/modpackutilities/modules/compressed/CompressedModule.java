@@ -2,6 +2,7 @@ package fr.iglee42.modpackutilities.modules.compressed;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import fr.iglee42.modpackutilities.resourcepack.generation.TextureKey;
 import fr.iglee42.modpackutilities.utils.Module;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -95,7 +96,10 @@ public class CompressedModule extends Module {
         for (int i = 1; i <= maxCompressedTiers; i++){
             int finalI = i;
             COMPRESSED.forEach(c->{
-
+                blockstate("compressed_" + c.getBlock().getPath() + "_"+finalI,getName() + ":block/"+"compressed_" + c.getBlock().getPath() + "_"+finalI);
+                model("block","compressed_" + c.getBlock().getPath() + "_"+finalI,c.isSingleTexture() ? "block/cube_all": c.getCustomBaseModel().toString(),c.getTextures().entrySet().stream().map(
+                        e-> new TextureKey(e.getKey(), e.getValue().mapBoth(m->m.texture().toString(), s->s).toString())
+                ).toArray(TextureKey[]::new));
             });
         }
     }
