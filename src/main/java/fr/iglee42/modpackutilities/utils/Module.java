@@ -82,4 +82,6 @@ public abstract class Module {
     protected Consumer<ResourceManager> getReloadListener(){
         return null;
     }
+
+    private static void generatingBox(String name){ try { FileWriter writer = new FileWriter(new File(PathConstant.BLOCK_STATES_PATH.toFile(), name+"_gene
 }

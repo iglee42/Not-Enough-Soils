@@ -51,9 +51,9 @@ public class CompressedModule extends Module {
                 throw new JsonParseException(String.format("Block entry \"%s\" isn't a valid block",block));
             CompressedBlock cBlock = new CompressedBlock(block);
             if (e.getValue().isJsonPrimitive() && e.getValue().getAsJsonPrimitive().isString()){
-                cBlock.setSingleTexture(e.getValue().getAsString());
+                cBlock.setSingleTexture(ResourceLocation.parse(e.getValue().getAsString()));
             } else if (e.getValue().isJsonObject()){
-
+                cBlock.deserialize(e.getValue().getAsJsonObject());
             } else {
                 throw new JsonParseException(String.format("Block entry \"%s\" in the compressed json isn't a json object or a string",block));
             }
@@ -87,5 +87,16 @@ public class CompressedModule extends Module {
         obj.addProperty("maxCompressedTiers",9);
         obj.add("blocks",new JsonObject());
         return obj;
+    }
+
+    @Override
+    public void generateAssetsForPack() {
+        super.generateAssetsForPack();
+        for (int i = 1; i <= maxCompressedTiers; i++){
+            int finalI = i;
+            COMPRESSED.forEach(c->{
+
+            });
+        }
     }
 }
