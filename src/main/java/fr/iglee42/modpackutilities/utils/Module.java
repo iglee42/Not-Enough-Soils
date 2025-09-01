@@ -11,6 +11,7 @@ import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileReader;
@@ -108,12 +109,12 @@ public abstract class Module {
             LogUtils.getLogger().error("An error was detected when a blockstate generating for {} module",getName(),exception);
         }
     }
-    protected void model(String type, String name, String parent, TextureKey[] textureKeys){
+    protected void model(String type, String name, String parent, TextureKey[] textureKeys,@NotNull String renderType){
         try {
             File file = new File(getFolderFor("models/"+type,true).toFile(), name+".json");
             file.getParentFile().mkdirs();
             String jsonBase =   "{\n"+
-                    "   \"parent\": \""+ parent +"\""+(textureKeys.length > 0 ? ",":"")+"\n";
+                    "   \"parent\": \""+ parent +"\""+(textureKeys.length > 0 || !renderType.isEmpty() ? ",":"")+"\n";
             StringBuilder builder = new StringBuilder(jsonBase);
             if (textureKeys.length > 0){
                 builder.append("   \"textures\": {\n");
@@ -122,7 +123,10 @@ public abstract class Module {
                     if (i != textureKeys.length - 1) builder.append(",");
                     builder.append("\n");
                 }
-                builder.append("    }\n");
+                builder.append("    }").append(renderType.isEmpty() ? "" : ",").append("\n");
+            }
+            if (!renderType.isEmpty()){
+                builder.append("   \"render_type\": \"").append(renderType).append("\"\n");
             }
             builder.append("}");
             FileWriter writer = new FileWriter(file);

@@ -2,6 +2,7 @@ package fr.iglee42.modpackutilities.modules.compressed;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.mojang.logging.LogUtils;
 import fr.iglee42.modpackutilities.resourcepack.generation.TextureKey;
 import fr.iglee42.modpackutilities.utils.Module;
 import net.minecraft.core.Holder;
@@ -16,6 +17,8 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -67,8 +70,21 @@ public class CompressedModule extends Module {
             for (int i = 1; i <= maxCompressedTiers; i++){
                 int finalI = i;
                 COMPRESSED.stream().filter(c->c.getBlockForTier(finalI) == null).forEach(c->{
-                    Block block = Registry.register(BuiltInRegistries.BLOCK,ResourceLocation.fromNamespaceAndPath(getName(),"compressed_" + c.getBlock().getPath() + "_"+finalI),new Block(BlockBehaviour.Properties.ofFullCopy(BuiltInRegistries.BLOCK.get(c.getBlock()))));
-                    c.setBlockForTier(finalI, block);
+                    try {
+                        Constructor<? extends Block> constructor = c.getCustomBlockClass() != null ? c.getCustomBlockClass().getConstructor(BlockBehaviour.Properties.class) : Block.class.getConstructor(BlockBehaviour.Properties.class);
+                        BlockBehaviour.Properties props = BlockBehaviour.Properties.ofFullCopy(BuiltInRegistries.BLOCK.get(c.getBlock()));
+                        if (c.getPushReaction() != null)
+                            props = props.pushReaction(c.getPushReaction());
+                        if (c.hasNoOcclusion())
+                            props = props.noOcclusion();
+                        Block block = Registry.register(BuiltInRegistries.BLOCK,ResourceLocation.fromNamespaceAndPath(getName(),"compressed_" + c.getBlock().getPath() + "_"+finalI),constructor.newInstance(props));
+                        c.setBlockForTier(finalI, block);
+                    } catch (NoSuchMethodException  e) {
+                        LogUtils.getLogger().error("The block class for {} doesn't have a valid constructor, skipping it...",c.getBlock(),e);
+                    } catch ( InstantiationException | IllegalAccessException |
+                            InvocationTargetException e){
+                        LogUtils.getLogger().error("Failed to invoke the constructor for the block for {}, skipping it...",c.getBlock(),e);
+                    }
                 });
             }
         } else if (event.getRegistryKey().equals(Registries.ITEM)){
@@ -97,9 +113,10 @@ public class CompressedModule extends Module {
             int finalI = i;
             COMPRESSED.forEach(c->{
                 blockstate("compressed_" + c.getBlock().getPath() + "_"+finalI,getName() + ":block/"+"compressed_" + c.getBlock().getPath() + "_"+finalI);
-                model("block","compressed_" + c.getBlock().getPath() + "_"+finalI,c.isSingleTexture() ? "block/cube_all": c.getCustomBaseModel().toString(),c.getTextures().entrySet().stream().map(
-                        e-> new TextureKey(e.getKey(), e.getValue().mapBoth(m->m.texture().toString(), s->s).toString())
-                ).toArray(TextureKey[]::new));
+                model("block","compressed_" + c.getBlock().getPath() + "_"+finalI,c.isSingleTexture() ? "block/cube_all": c.getCustomParent().toString(),c.getTextures().entrySet().stream().map(
+                        e-> new TextureKey(e.getKey(), e.getValue().map(ResourceLocation::toString, r->r))
+                ).toArray(TextureKey[]::new),c.getRenderType().name().toLowerCase());
+                model("item","compressed_" + c.getBlock().getPath() + "_"+finalI,getName() + ":block/"+"compressed_" + c.getBlock().getPath() + "_"+finalI,new TextureKey[]{},"");
             });
         }
     }
