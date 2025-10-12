@@ -15,14 +15,18 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
 import java.io.IOException;
@@ -33,6 +37,7 @@ import java.util.*;
 public class CompressedModule extends Module {
 
     public static final String DEFAULT_LAYER = "compressed:block/layer_{{layer}}";
+    private static final ResourceKey<CreativeModeTab> TAB_KEY = ResourceKey.create(Registries.CREATIVE_MODE_TAB, ResourceLocation.fromNamespaceAndPath("compressed","main"));
 
     private final List<CompressedBlock> COMPRESSED;
     private int maxCompressedTiers;
@@ -49,6 +54,7 @@ public class CompressedModule extends Module {
     public void init(IEventBus modEventBus, IEventBus forgeEventBus) throws Exception {
         super.init(modEventBus, forgeEventBus);
         modEventBus.addListener(this::registerEvent);
+        modEventBus.addListener(this::addItemsToCreativeTab);
         JsonObject config = getConfig();
         if (!config.has("maxCompressedTiers")){
             fatal("Missing maxCompressedTiers key in the compressed json");
@@ -141,8 +147,25 @@ public class CompressedModule extends Module {
 
     }
 
+    private void addItemsToCreativeTab(BuildCreativeModeTabContentsEvent event){
+        if (event.getTabKey().equals(TAB_KEY)){
+            COMPRESSED.forEach(c->{
+                for (int i = 1; i <= maxCompressedTiers; i++){
+                    if (c.getItemForTier(i) != null)
+                        event.accept(c.getItemForTier(i));
+                }
+            });
+        }
+    }
+
     private void registerEvent(RegisterEvent event){
-        if (event.getRegistryKey().equals(Registries.BLOCK)){
+        if (event.getRegistryKey().equals(Registries.CREATIVE_MODE_TAB)){
+            Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, TAB_KEY, CreativeModeTab.builder()
+                    .title(Component.translatable("itemGroup.imu.compressed"))
+                    .withSearchBar()
+                    .icon(Items.REINFORCED_DEEPSLATE::getDefaultInstance)
+                    .build());
+        } else if (event.getRegistryKey().equals(Registries.BLOCK)){
             for (int i = 1; i <= maxCompressedTiers; i++){
                 int finalI = i;
                 COMPRESSED.stream().filter(c->c.getBlockForTier(finalI) == null).forEach(c->{

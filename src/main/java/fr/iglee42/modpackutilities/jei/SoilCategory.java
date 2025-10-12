@@ -35,7 +35,7 @@ public class SoilCategory implements IRecipeCategory<SoilRecipe> {
 
     @Override
     public Component getTitle() {
-        return Component.translatable("category.snes.soils");
+        return Component.translatable("category.imu.soils");
     }
 
     @Override
