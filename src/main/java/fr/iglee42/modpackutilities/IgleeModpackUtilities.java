@@ -39,12 +39,6 @@ public class IgleeModpackUtilities {
         modEventBus.addListener(this::registerPackRepo);
 
         PathConstant.init();
-
-        //try {
-        //    if (FMLEnvironment.dist == Dist.CLIENT) {
-        //        Minecraft.getInstance().getResourcePackRepository().addPackFinder(new IMUPackFinder(CustomPackType.RESOURCE));
-        //    }
-        //} catch (Exception ignored) {}
     }
 
     private void registerPackRepo(AddPackFindersEvent event){
@@ -57,7 +51,7 @@ public class IgleeModpackUtilities {
             try {
                 m.init(modEventBus, NeoForge.EVENT_BUS);
             } catch (Exception e){
-                LOGGER.error("Failed to load {} module : {}",m.getName(),e);
+                m.fatal("Failed to load {} module : {}",m.getName(),e);
             }
         });
     }

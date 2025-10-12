@@ -37,6 +37,7 @@ public class SoilsModule extends Module {
     public void init(IEventBus modEventBus, IEventBus forgeEventBus) throws Exception {
         super.init(modEventBus, forgeEventBus);
         forgeEventBus.addListener(this::cropGrow);
+        info("Initialized {} module successfully",getName());
     }
 
     private void cropGrow(final CropGrowEvent.Pre event) {
@@ -56,7 +57,10 @@ public class SoilsModule extends Module {
         config.keySet().forEach(k -> {
             ResourceLocation key = ResourceLocation.parse(k);
             Optional<Holder.Reference<Block>> optional = BuiltInRegistries.BLOCK.getHolder(key);
-            if (optional.isEmpty()) throw new JsonParseException("Invalid block key in IMU Soils config file : " + key);
+            if (optional.isEmpty()){
+                error("Invalid block key in IMU Soils config file : " + key);
+                return;
+            }
 
             if (config.get(k).isJsonArray()) {
 
@@ -75,11 +79,11 @@ public class SoilsModule extends Module {
                             ResourceLocation value = ResourceLocation.parse(strValue);
                             Optional<Holder.Reference<Block>> optionalValue = BuiltInRegistries.BLOCK.getHolder(value);
                             if (optionalValue.isEmpty())
-                                LogUtils.getLogger().error("Invalid block value for {} in IMU Soils config file : {}", key, value);
+                                warn("Invalid block value for {} in IMU Soils config file : {}", key, value);
                             else blocks.add(optionalValue.get().value());
                         }
                     } else {
-                        LogUtils.getLogger().error("A value in the array for {} isn't a string, ignoring it...", key);
+                        error("A value in the array for {} isn't a string", key);
                     }
                 }
                 SOILS.put(optional.get().value(), blocks);
@@ -92,18 +96,18 @@ public class SoilsModule extends Module {
                     if (!blocks.isEmpty()) {
                         SOILS.put(optional.get().value(), List.copyOf(blocks));
                     } else {
-                        throw new JsonParseException("Tag " + blockTagKey.location() + " for " + key + " in IMU Soils config file is empty or doesn't exist");
+                        warn("Tag " + blockTagKey.location() + " for " + key + " in IMU Soils config file is empty or doesn't exist");
                     }
                 } else {
                     ResourceLocation value = ResourceLocation.parse(strValue);
                     Optional<Holder.Reference<Block>> optionalValue = BuiltInRegistries.BLOCK.getHolder(value);
                     if (optionalValue.isEmpty())
-                        throw new JsonParseException("Invalid block value for " + key + " in IMU Soils config file : " + value);
+                        error("Invalid block value for " + key + " in IMU Soils config file : " + value);
                     SOILS.put(optional.get().value(), List.of(optionalValue.get().value()));
                 }
 
             } else {
-                throw new JsonParseException("Value for " + key + " in IMU Soils config file isn't an array or a string");
+                error("Value for " + key + " in IMU Soils config file isn't an array or a string");
             }
         });
     }
@@ -116,9 +120,9 @@ public class SoilsModule extends Module {
             try {
                 module.reloadConfig();
                 if (ModList.get().isLoaded("mysticalagriculture")) MysticalUtils.reloadCropsSoils();
-                LogUtils.getLogger().info("Successfully reloaded IMU soils and modified soils for {} plants", module.SOILS.size());
+                info("Successfully reloaded IMU soils and modified soils for {} plants", module.SOILS.size());
             } catch (Exception e) {
-                LogUtils.getLogger().error("Failed to reload IMU soils: ", e);
+                error("Failed to reload IMU soils: ", e);
             }
         };
     }

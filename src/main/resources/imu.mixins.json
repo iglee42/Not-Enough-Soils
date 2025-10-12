@@ -14,6 +14,7 @@
     "soils.mystical.CruxRecipeMixin"
   ],
   "client": [
+    "compressed.ModelManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
