@@ -5,6 +5,7 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
 import fr.iglee42.modpackutilities.IgleeModpackUtilities;
+import fr.iglee42.modpackutilities.utils.SoundTypeHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
@@ -16,6 +17,7 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.common.data.SoundDefinition;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class CompressedBlock {
@@ -218,6 +220,19 @@ public class CompressedBlock {
                     this.light = l;
                 } else {
                     module.error("light in the compressed object for {} isn't a int", getBlock());
+                }
+            }
+            if (json.has("soundType")) {
+                if (json.get("soundType").isJsonPrimitive() && json.getAsJsonPrimitive("soundType").isString()) {
+                    String type = json.getAsJsonPrimitive("soundType").getAsString().toLowerCase(Locale.ROOT);
+                    SoundType soundType = SoundTypeHelper.INSTANCE.getTypes().getOrDefault(type,null);
+                    if (soundType == null) {
+                        module.warn("soundType in the compressed object for {} isn't a valid SoundType", getBlock());
+                        return;
+                    }
+                    this.soundType = soundType;
+                } else {
+                    module.error("soundType in the compressed object for {} isn't a string", getBlock());
                 }
             }
             if (textures.isEmpty()) {
