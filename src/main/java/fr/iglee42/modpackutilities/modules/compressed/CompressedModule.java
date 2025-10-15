@@ -23,6 +23,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.storage.loot.LootPool;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSet;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.loading.FMLEnvironment;
@@ -258,6 +264,8 @@ public class CompressedModule extends Module {
 
                     lang(c.getBlockForTier(finalI).getDescriptionId(), LangFormatter.format(langExpression,ctx));
                 }
+
+
                 if (generateRecipes){
                     {
                         JsonObject shaped = new JsonObject();
@@ -290,6 +298,29 @@ public class CompressedModule extends Module {
                         recipe("compressed_" + c.getBlock().getPath() + "_" + finalI+"_decompress", "minecraft:crafting_shapeless", shapeless);
                     }
                 }
+                tag(BuiltInRegistries.BLOCK,rl("compressed/"+c.getBlock().getPath()),"#"+getName()+":compressed/" + c.getBlock().getPath() + "/" + finalI);
+                tag(BuiltInRegistries.BLOCK,rl("compressed/"+c.getBlock().getPath()+"/"+finalI),(getName()+":compressed_" + c.getBlock().getPath() + "_" + finalI));
+                tag(BuiltInRegistries.BLOCK,rl("compressed"),"#"+getName()+":compressed/"+c.getBlock().getPath());
+
+                tag(BuiltInRegistries.ITEM,rl("compressed/"+c.getBlock().getPath()),"#"+getName()+":compressed/" + c.getBlock().getPath() + "/" + finalI);
+                tag(BuiltInRegistries.ITEM,rl("compressed/"+c.getBlock().getPath()+"/"+finalI),(getName()+":compressed_" + c.getBlock().getPath() + "_" + finalI));
+                tag(BuiltInRegistries.ITEM,rl("compressed"),"#"+getName()+":compressed/"+c.getBlock().getPath());
+
+                c.getBlockTags().forEach(rs->{
+                    tag(BuiltInRegistries.BLOCK,rs,(getName()+":compressed_" + c.getBlock().getPath() + "_" + finalI));
+                });
+                c.getItemTags().forEach(rs->{
+                    tag(BuiltInRegistries.ITEM,rs,(getName()+":compressed_" + c.getBlock().getPath() + "_" + finalI));
+                });
+
+                LootTable table = LootTable.lootTable().setParamSet(LootContextParamSets.BLOCK)
+                        .setRandomSequence(rl("compressed_" + c.getBlock().getPath() + "_" + finalI)).withPool(
+                                LootPool.lootPool()
+                                        .add(LootItem.lootTableItem(c.getItemForTier(finalI)))
+                                        .when(ExplosionCondition.survivesExplosion()))
+                        .build();
+
+                lootTable("blocks","compressed_" + c.getBlock().getPath() + "_" + finalI,table);
             });
         }
     }

@@ -4,22 +4,30 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.logging.LogUtils;
+import com.mojang.serialization.JsonOps;
 import fr.iglee42.igleelib.api.utils.ModsUtils;
 import fr.iglee42.modpackutilities.IgleeModpackUtilities;
 import fr.iglee42.modpackutilities.resourcepack.PathConstant;
 import fr.iglee42.modpackutilities.resourcepack.generation.TextureKey;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
+import net.minecraft.world.level.storage.loot.LootTable;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.loading.FMLPaths;
+import net.neoforged.neoforge.common.CommonHooks;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.FileAppender;
-import org.apache.logging.log4j.core.appender.RollingFileAppender;
-import org.apache.logging.log4j.core.appender.rolling.TimeBasedTriggeringPolicy;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +36,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -38,6 +48,7 @@ public abstract class Module {
     private boolean isLoaded = false;
     private File configFile;
     private final Map<String,String> langs;
+    private final Map<ResourceKey<?>, List<String>> tags;
     private final Logger logger;
 
     protected Module(String name, boolean hasConfig) {
@@ -47,7 +58,12 @@ public abstract class Module {
             configFile.getParentFile().mkdirs();
         }
         langs = new HashMap<>();
+        tags = new HashMap<>();
         logger = createModuleLogger(name,Path.of("logs/"+IgleeModpackUtilities.MODID+"/"));
+    }
+
+    public ResourceLocation rl(String path) {
+        return ResourceLocation.fromNamespaceAndPath(getName(),path);
     }
 
     public void setLoaded(boolean loaded) {
@@ -122,7 +138,7 @@ public abstract class Module {
                     "}");
             writer.close();
         } catch (Exception exception){
-            LogUtils.getLogger().error("An error was detected when a blockstate generating for {} module",getName(),exception);
+            LogUtils.getLogger().error("An error was detected when generating blockstate {} ",name,exception);
         }
     }
     protected void model(String type, String name, String parent, TextureKey[] textureKeys,@NotNull String renderType){
@@ -149,7 +165,7 @@ public abstract class Module {
             writer.write(builder.toString());
             writer.close();
         } catch (Exception exception){
-            LogUtils.getLogger().error("An error was detected when a model generating for {} module",getName(),exception);
+            error("An error was detected when generating {} model {} ",type,name,exception);
         }
     }
 
@@ -171,7 +187,7 @@ public abstract class Module {
             writer.write(builder.toString());
             writer.close();
         } catch (Exception exception){
-            LogUtils.getLogger().error("An error was detected when a recipe generating for {} module",getName(),exception);
+           error("An error was detected when generating recipe {} ",name,exception);
         }
     }
 
@@ -189,9 +205,52 @@ public abstract class Module {
                 writer.write(new Gson().toJson(json));
             }
         } catch (Exception exception){
-            LogUtils.getLogger().error("An error was detected when a lang file generating for {} module",getName(),exception);
+           error("An error was detected when generating lang file ",exception);
         }
 
+    }
+
+    public void generateTagsFile(){
+        for (ResourceKey<?> key : tags.keySet()){
+            String tagFolder = CommonHooks.prefixNamespace(key.registryKey().location());
+            try {
+                File file = new File(PathConstant.BASE_DATA_PATH.resolve(key.location().getNamespace() +"/tags/"+tagFolder).toFile(), key.location().getPath()+".json");
+                file.getParentFile().mkdirs();
+                JsonObject json = new JsonObject();
+                json.addProperty("replace", false);
+                json.add("values", new Gson().toJsonTree(tags.get(key)));
+                try (FileWriter writer = new FileWriter(file)){
+                    writer.write(new Gson().toJson(json));
+                }
+            } catch (Exception exception){
+                error("An error was detected when generating tag {} ",key.location(),exception);
+            }
+        }
+    }
+
+    protected <K> void tag(Registry<K> registry, ResourceLocation tag,String... values){
+        ResourceKey<K> key = ResourceKey.create(registry.key(), tag);
+        List<String> list = tags.getOrDefault(key,new ArrayList<>());
+        for (String value : values){
+            if (!list.contains(value)){
+                list.add(value);
+            }
+        }
+        tags.put(key,list);
+    }
+
+
+    protected void lootTable(String type, String name, LootTable lootTable){
+        try {
+            File file = new File(getFolderFor("loot_table",false).toFile(), type+"/"+name+".json");
+            file.getParentFile().mkdirs();
+            FileWriter writer = new FileWriter(file);
+            JsonElement lt = LootTable.CODEC.encodeStart(RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY)), Holder.direct(lootTable)).getOrThrow();
+            writer.write(new Gson().toJson(lt));
+            writer.close();
+        } catch (Exception exception){
+            error("An error was detected when generating loot table {} ",name,exception);
+        }
     }
 
     private static Logger createModuleLogger(String moduleName,Path logDir) {

@@ -16,9 +16,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.common.data.SoundDefinition;
 
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public class CompressedBlock {
 
@@ -32,11 +30,15 @@ public class CompressedBlock {
     private boolean noOcclusion = false;
     private int light = 0;
     private SoundType soundType;
+    private List<ResourceLocation> itemTags;
+    private List<ResourceLocation> blockTags;
 
     public CompressedBlock(ResourceLocation block) {
         this.block = block;
         this.tierObjects = new HashMap<>();
         this.textures = new HashMap<>();
+        this.itemTags = new ArrayList<>();
+        this.blockTags = new ArrayList<>();
     }
 
     public Pair<Block,BlockItem> getPairForTier(int tier){
@@ -235,6 +237,49 @@ public class CompressedBlock {
                     module.error("soundType in the compressed object for {} isn't a string", getBlock());
                 }
             }
+            if (json.has("tags")) {
+                if (json.get("tags").isJsonObject()) {
+                    JsonObject tags = json.getAsJsonObject("tags");
+                    if (tags.has("block")) {
+                        if (tags.get("block").isJsonArray()) {
+                            for (int i = 0; i < tags.getAsJsonArray("block").size(); i++) {
+                                if (tags.getAsJsonArray("block").get(i).isJsonPrimitive() && tags.getAsJsonArray("block").get(i).getAsJsonPrimitive().isString()) {
+                                    ResourceLocation location = ResourceLocation.tryParse(tags.getAsJsonArray("block").get(i).getAsJsonPrimitive().getAsString());
+                                    if (location == null) {
+                                        module.warn("tag {} in the tags/block array for {} isn't a valid resource location", tags.getAsJsonArray("block").get(i).getAsJsonPrimitive().getAsString(), getBlock());
+                                    } else {
+                                        blockTags.add(location);
+                                    }
+                                } else {
+                                    module.error("tag {} in the tags/block array for {} isn't a string", i, getBlock());
+                                }
+                            }
+                        } else {
+                            module.error("tags/block in the compressed object for {} isn't a json array", getBlock());
+                        }
+                    }
+                    if (tags.has("item")) {
+                        if (tags.get("item").isJsonArray()) {
+                            for (int i = 0; i < tags.getAsJsonArray("item").size(); i++) {
+                                if (tags.getAsJsonArray("item").get(i).isJsonPrimitive() && tags.getAsJsonArray("item").get(i).getAsJsonPrimitive().isString()) {
+                                    ResourceLocation location = ResourceLocation.tryParse(tags.getAsJsonArray("item").get(i).getAsJsonPrimitive().getAsString());
+                                    if (location == null) {
+                                        module.warn("tag {} in the tags/item array for {} isn't a valid resource location", tags.getAsJsonArray("item").get(i).getAsJsonPrimitive().getAsString(), getBlock());
+                                    } else {
+                                        itemTags.add(location);
+                                    }
+                                } else {
+                                    module.error("tag {} in the tags/item array for {} isn't a string", i, getBlock());
+                                }
+                            }
+                        } else {
+                            module.error("tags/item in the compressed object for {} isn't a json array", getBlock());
+                        }
+                    }
+                }  else {
+                    module.error("tags in the compressed object for {} isn't a json object", getBlock());
+                }
+            }
             if (textures.isEmpty()) {
                 module.warn("Block \"{}\" doesn't have any texture." ,getBlock());
             }
@@ -264,6 +309,14 @@ public class CompressedBlock {
 
     public SoundType getSoundType() {
         return soundType;
+    }
+
+    public List<ResourceLocation> getItemTags() {
+        return itemTags;
+    }
+
+    public List<ResourceLocation> getBlockTags() {
+        return blockTags;
     }
 
     public enum BlockRenderType {

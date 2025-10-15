@@ -47,6 +47,7 @@ public class InMemoryPack implements PackResources {
         if (!hasGenerated) {
             IgleeModpackUtilities.MODULES.stream().filter(Module::isLoaded).forEach(Module::generateAssetsForPack);
             IgleeModpackUtilities.MODULES.stream().filter(Module::isLoaded).forEach(Module::generateLangFile);
+            IgleeModpackUtilities.MODULES.stream().filter(Module::isLoaded).forEach(Module::generateTagsFile);
             hasGenerated = true;
         }
     }
