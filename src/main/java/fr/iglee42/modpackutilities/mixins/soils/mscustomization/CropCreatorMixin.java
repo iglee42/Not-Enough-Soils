@@ -1,26 +1,22 @@
-package fr.iglee42.notenoughsoils.mixins.mscustomization;
+package fr.iglee42.modpackutilities.mixins.soils.mscustomization;
 
 import com.blakebr0.mysticalagriculture.api.crop.Crop;
-import com.blakebr0.mysticalagriculture.api.crop.CropRecipes;
-import com.blakebr0.mysticalagriculture.api.crop.CropTextures;
 import com.blakebr0.mysticalagriculture.api.lib.LazyIngredient;
 import com.blakebr0.mysticalcustomization.create.CropCreator;
-import com.blakebr0.mysticalcustomization.modify.CropModifier;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import fr.iglee42.notenoughsoils.CropWithSoils;
+import fr.iglee42.modpackutilities.modules.soils.CropWithSoils;
+import fr.iglee42.modpackutilities.utils.RequiresMods;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
@@ -28,14 +24,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@Mixin(value = CropModifier.class,remap = false)
-public class CropModifierMixin {
+@RequiresMods({"mysticalcustomization"})
+@Mixin(value = CropCreator.class,remap = false)
+public class CropCreatorMixin {
 
-    @Inject(method = "modify",at=@At(value = "HEAD"),locals = LocalCapture.CAPTURE_FAILSOFT)
-    private static void snes$readCustomSoils(Crop crop, JsonObject json, CallbackInfo ci){
-
-        CropWithSoils castedCrop = (CropWithSoils) crop;
+    @Inject(method = "create",at= @At(value = "RETURN",ordinal = 0),locals = LocalCapture.CAPTURE_FAILSOFT)
+    private static void snes$readCustomSoils(ResourceLocation id, JsonObject json, CallbackInfoReturnable<Crop> cir, JsonObject ingredient, LazyIngredient material, Crop crop){
         if (json.has("soils")) {
+            CropWithSoils castedCrop = (CropWithSoils) crop;
             if (json.get("soils").isJsonArray()) {
                 ArrayList<Block> blocks = new ArrayList<>();
                 for (JsonElement j : json.getAsJsonArray("soils")) {
@@ -43,16 +39,17 @@ public class CropModifierMixin {
                         String strValue = j.getAsJsonPrimitive().getAsString();
                         if (strValue.startsWith("#")){
                             TagKey<Block> blockTagKey = TagKey.create(Registries.BLOCK,ResourceLocation.parse(strValue.substring(1)));
-                                List<Block> tagBlocks = ForgeRegistries.BLOCKS.tags() == null || ForgeRegistries.BLOCKS.tags().getTag(blockTagKey).isEmpty() ? new ArrayList<>(): ForgeRegistries.BLOCKS.tags().getTag(blockTagKey).stream().toList();
+                            List<Block> tagBlocks = new ArrayList<>();
+                            BuiltInRegistries.BLOCK.getTagOrEmpty(blockTagKey).forEach(h->tagBlocks.add(h.value()));
                             if (!tagBlocks.isEmpty()){
                                 blocks.addAll(List.copyOf(tagBlocks));
                             }
                         } else {
                             ResourceLocation value = ResourceLocation.parse(j.getAsJsonPrimitive().getAsString());
-                            Optional<Holder<Block>> optionalValue = ForgeRegistries.BLOCKS.getHolder(value);
+                            Optional<Holder.Reference<Block>> optionalValue = BuiltInRegistries.BLOCK.getHolder(value);
                             if (optionalValue.isEmpty())
                                 throw new JsonParseException("Invalid soil value : " + value);
-                            else blocks.add(optionalValue.get().get());
+                            else blocks.add(optionalValue.get().value());
                         }
                     }
                 }
@@ -61,7 +58,8 @@ public class CropModifierMixin {
                 String strValue = json.get("soils").getAsJsonPrimitive().getAsString();
                 if (strValue.startsWith("#")){
                     TagKey<Block> blockTagKey = TagKey.create(Registries.BLOCK,ResourceLocation.parse(strValue.substring(1)));
-                        List<Block> blocks = ForgeRegistries.BLOCKS.tags() == null || ForgeRegistries.BLOCKS.tags().getTag(blockTagKey).isEmpty() ? new ArrayList<>(): ForgeRegistries.BLOCKS.tags().getTag(blockTagKey).stream().toList();
+                    List<Block> blocks = new ArrayList<>();
+                    BuiltInRegistries.BLOCK.getTagOrEmpty(blockTagKey).forEach(h->blocks.add(h.value()));
                     if (!blocks.isEmpty()){
                         castedCrop.snes$setCustomSoils( List.copyOf(blocks));
                     } else {
@@ -69,10 +67,10 @@ public class CropModifierMixin {
                     }
                 } else {
                     ResourceLocation value = ResourceLocation.parse(strValue);
-                    Optional<Holder<Block>> optionalValue = ForgeRegistries.BLOCKS.getHolder(value);
+                    Optional<Holder.Reference<Block>> optionalValue = BuiltInRegistries.BLOCK.getHolder(value);
                     if (optionalValue.isEmpty())
                         throw new JsonParseException("Invalid soil value : " + value);
-                    castedCrop.snes$setCustomSoils(List.of(optionalValue.get().get()));
+                    castedCrop.snes$setCustomSoils(List.of(optionalValue.get().value()));
                 }
             } else {
                 throw new JsonParseException("\"soils\" isn't an array or a string");
