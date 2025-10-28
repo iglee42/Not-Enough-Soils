@@ -6,24 +6,24 @@ import com.google.gson.JsonObject;
 import com.mojang.logging.LogUtils;
 import fr.iglee42.modpackutilities.modules.compressed.CompressedModule;
 import fr.iglee42.modpackutilities.modules.soils.SoilsModule;
-import fr.iglee42.modpackutilities.resourcepack.IMUPackFinder;
 import fr.iglee42.modpackutilities.resourcepack.CustomPackType;
+import fr.iglee42.modpackutilities.resourcepack.IMUPackFinder;
 import fr.iglee42.modpackutilities.resourcepack.PathConstant;
-import net.minecraft.client.Minecraft;
+import fr.iglee42.modpackutilities.utils.Module;
 import net.minecraft.server.packs.PackType;
-import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
 import org.slf4j.Logger;
 
-import java.io.*;
-import java.util.*;
-
-import fr.iglee42.modpackutilities.utils.Module;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Mod(IgleeModpackUtilities.MODID)
