@@ -7,6 +7,7 @@ version="${mod_version}"
 displayName="${mod_name}"
 authors="${mod_authors}"
 displayURL = "iglee.fr"
+logoFile = "logo.png"
 
 [[mixins]]
 config="${mod_id}.mixins.json"
@@ -25,5 +26,11 @@ side="BOTH"
 modId="minecraft"
 mandatory=true
 versionRange="${minecraft_version_range}"
+ordering="NONE"
+side="BOTH"
+[[dependencies.${mod_id}]]
+modId="igleelib"
+mandatory=true
+versionRange="${lib_version_range}"
 ordering="NONE"
 side="BOTH"
