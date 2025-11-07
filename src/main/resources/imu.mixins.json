@@ -7,7 +7,7 @@
   "plugin": "fr.iglee42.modpackutilities.IMUMixinConfig",
   "mixins": [
     "soils.BushBlockMixin",
-    "soils.IBlockExtensionMixin",
+    "soils.BlockMixin",
     "soils.mscustomization.CropCreatorMixin",
     "soils.mscustomization.CropModifierMixin",
     "soils.mystical.CropMixin",

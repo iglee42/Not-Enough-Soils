@@ -13,11 +13,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModList;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.AddReloadListenerEvent;
-import net.neoforged.neoforge.event.level.block.CropGrowEvent;
+import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,12 +40,12 @@ public class SoilsModule extends Module {
         info("Initialized {} module successfully",getName());
     }
 
-    private void cropGrow(final CropGrowEvent.Pre event) {
+    private void cropGrow(final BlockEvent.CropGrowEvent.Pre event) {
         if (!SOILS.containsKey(event.getState().getBlock())) return;
 
         List<Block> requiredSoil = SOILS.get(event.getState().getBlock());
         if (!requiredSoil.contains(event.getLevel().getBlockState(event.getPos().below()).getBlock())) {
-            event.setResult(CropGrowEvent.Pre.Result.DO_NOT_GROW);
+            event.setResult(Event.Result.DENY);
         }
     }
 
@@ -56,7 +56,7 @@ public class SoilsModule extends Module {
         if (config == null) return;
         config.keySet().forEach(k -> {
             ResourceLocation key = ResourceLocation.parse(k);
-            Optional<Holder.Reference<Block>> optional = BuiltInRegistries.BLOCK.getHolder(key);
+            Optional<Holder<Block>> optional = ForgeRegistries.BLOCKS.getHolder(key);
             if (optional.isEmpty()){
                 error("Invalid block key in IMU Soils config file : " + key);
                 return;
@@ -77,7 +77,7 @@ public class SoilsModule extends Module {
                             }
                         } else {
                             ResourceLocation value = ResourceLocation.parse(strValue);
-                            Optional<Holder.Reference<Block>> optionalValue = BuiltInRegistries.BLOCK.getHolder(value);
+                            Optional<Holder<Block>> optionalValue = ForgeRegistries.BLOCKS.getHolder(value);
                             if (optionalValue.isEmpty())
                                 warn("Invalid block value for {} in IMU Soils config file : {}", key, value);
                             else blocks.add(optionalValue.get().value());
@@ -100,7 +100,7 @@ public class SoilsModule extends Module {
                     }
                 } else {
                     ResourceLocation value = ResourceLocation.parse(strValue);
-                    Optional<Holder.Reference<Block>> optionalValue = BuiltInRegistries.BLOCK.getHolder(value);
+                    Optional<Holder<Block>> optionalValue = ForgeRegistries.BLOCKS.getHolder(value);
                     if (optionalValue.isEmpty())
                         error("Invalid block value for " + key + " in IMU Soils config file : " + value);
                     SOILS.put(optional.get().value(), List.of(optionalValue.get().value()));

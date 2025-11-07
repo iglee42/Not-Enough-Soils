@@ -29,11 +29,10 @@ import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSet;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
-import net.neoforged.neoforge.registries.RegisterEvent;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegisterEvent;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -43,7 +42,7 @@ import java.util.*;
 public class CompressedModule extends Module {
 
     public static final String DEFAULT_LAYER = "compressed:block/layer_{{layer}}";
-    private static final ResourceKey<CreativeModeTab> TAB_KEY = ResourceKey.create(Registries.CREATIVE_MODE_TAB, ResourceLocation.fromNamespaceAndPath("compressed","main"));
+    private static final ResourceLocation TAB_KEY = ResourceLocation.fromNamespaceAndPath("compressed","main");
 
     private final List<CompressedBlock> COMPRESSED;
     private int maxCompressedTiers;
@@ -78,7 +77,7 @@ public class CompressedModule extends Module {
                 warn("Block \"{}\" in the compressed json isn't a valid ResourceLocation",e.getKey());
                 return;
             }
-            Optional<Holder.Reference<Block>> optionalValue = BuiltInRegistries.BLOCK.getHolder(block);
+            Optional<Holder<Block>> optionalValue = ForgeRegistries.BLOCKS.getHolder(block);
             if (optionalValue.isEmpty()) {
                 warn("Block entry \"{}\" isn't a valid block", block);
                 return;
@@ -154,14 +153,14 @@ public class CompressedModule extends Module {
     }
 
     private void addItemsToCreativeTab(BuildCreativeModeTabContentsEvent event){
-        if (event.getTabKey().equals(TAB_KEY)){
-            COMPRESSED.forEach(c->{
-                for (int i = 1; i <= maxCompressedTiers; i++){
-                    if (c.getItemForTier(i) != null)
-                        event.accept(c.getItemForTier(i));
-                }
-            });
-        }
+       if (event.getTabKey().location().equals(TAB_KEY)){
+           COMPRESSED.forEach(c->{
+               for (int i = 1; i <= maxCompressedTiers; i++){
+                   if (c.getItemForTier(i) != null)
+                       event.accept(c.getItemForTier(i));
+               }
+           });
+       }
     }
 
     private void registerEvent(RegisterEvent event){
@@ -177,7 +176,7 @@ public class CompressedModule extends Module {
                 COMPRESSED.stream().filter(c->c.getBlockForTier(finalI) == null).forEach(c->{
                     try {
                         Constructor<? extends Block> constructor = c.getCustomBlockClass() != null ? c.getCustomBlockClass().getConstructor(BlockBehaviour.Properties.class) : Block.class.getConstructor(BlockBehaviour.Properties.class);
-                        BlockBehaviour.Properties props = BlockBehaviour.Properties.ofFullCopy(BuiltInRegistries.BLOCK.get(c.getBlock()));
+                        BlockBehaviour.Properties props = BlockBehaviour.Properties.copy(BuiltInRegistries.BLOCK.get(c.getBlock()));
                         if (c.getPushReaction() != null)
                             props = props.pushReaction(c.getPushReaction());
                         if (c.hasNoOcclusion())
@@ -185,11 +184,8 @@ public class CompressedModule extends Module {
                         if (c.getLight() > 0)
                             props = props.lightLevel(bs->c.getLight());
                         if (progressiveHardness != 0){
-                            float originalHardness = BlockBehaviour.Properties.ofFullCopy(BuiltInRegistries.BLOCK.get(c.getBlock())).destroyTime;
+                            float originalHardness = BlockBehaviour.Properties.copy(BuiltInRegistries.BLOCK.get(c.getBlock())).destroyTime;
                             props = props.strength(originalHardness + (progressiveHardness * finalI));
-                        }
-                        if (c.getSoundType() != null){
-                            props = props.sound(c.getSoundType());
                         }
                         Block block = Registry.register(BuiltInRegistries.BLOCK,ResourceLocation.fromNamespaceAndPath(getName(),"compressed_" + c.getBlock().getPath() + "_"+finalI),constructor.newInstance(props));
                         c.setBlockForTier(finalI, block);

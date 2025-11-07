@@ -18,11 +18,13 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
+import net.minecraft.tags.TagManager;
+import net.minecraft.world.level.storage.loot.LootDataType;
 import net.minecraft.world.level.storage.loot.LootTable;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.loading.FMLPaths;
-import net.neoforged.neoforge.common.CommonHooks;
-import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.event.AddReloadListenerEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.loading.FMLPaths;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -212,7 +214,7 @@ public abstract class Module {
 
     public void generateTagsFile(){
         for (ResourceKey<?> key : tags.keySet()){
-            String tagFolder = CommonHooks.prefixNamespace(key.registryKey().location());
+            String tagFolder = ForgeHooks.prefixNamespace(key.registry());
             try {
                 File file = new File(PathConstant.BASE_DATA_PATH.resolve(key.location().getNamespace() +"/tags/"+tagFolder).toFile(), key.location().getPath()+".json");
                 file.getParentFile().mkdirs();
@@ -245,7 +247,7 @@ public abstract class Module {
             File file = new File(getFolderFor("loot_table",false).toFile(), type+"/"+name+".json");
             file.getParentFile().mkdirs();
             FileWriter writer = new FileWriter(file);
-            JsonElement lt = LootTable.CODEC.encodeStart(RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY)), Holder.direct(lootTable)).getOrThrow();
+            JsonElement lt = LootDataType.TABLE.parser().toJsonTree(lootTable);
             writer.write(new Gson().toJson(lt));
             writer.close();
         } catch (Exception exception){

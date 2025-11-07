@@ -4,15 +4,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.mojang.datafixers.util.Pair;
 import fr.iglee42.modpackutilities.IgleeModpackUtilities;
+import fr.iglee42.modpackutilities.utils.Module;
 import net.minecraft.SharedConstants;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.PackLocationInfo;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.metadata.MetadataSectionSerializer;
-import net.minecraft.server.packs.repository.KnownPack;
-import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,11 +18,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import fr.iglee42.modpackutilities.utils.Module;
 public class InMemoryPack implements PackResources {
 
     //STATIC FIELDS
@@ -148,17 +147,5 @@ public class InMemoryPack implements PackResources {
     @Override
     public void close() {
 
-    }
-
-
-    public static PackLocationInfo getPackInfo(PackType type){
-        return new PackLocationInfo(
-                "imu_"+type.getDirectory().toLowerCase(), Component.literal("IMU Builtin Pack"), PackSource.BUILT_IN, Optional.of(new KnownPack(IgleeModpackUtilities.MODID,type.getDirectory().toLowerCase(), SharedConstants.getCurrentVersion().getId()))
-        );
-    }
-
-    @Override
-    public PackLocationInfo location() {
-        return getPackInfo(type);
     }
 }

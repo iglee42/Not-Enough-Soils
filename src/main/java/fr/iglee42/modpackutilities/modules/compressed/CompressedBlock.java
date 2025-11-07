@@ -3,18 +3,15 @@ package fr.iglee42.modpackutilities.modules.compressed;
 import com.google.gson.JsonObject;
 import com.mojang.datafixers.util.Either;
 import com.mojang.datafixers.util.Pair;
-import com.mojang.logging.LogUtils;
 import fr.iglee42.modpackutilities.IgleeModpackUtilities;
-import fr.iglee42.modpackutilities.utils.SoundTypeHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.PushReaction;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.common.data.SoundDefinition;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.*;
 
@@ -29,7 +26,6 @@ public class CompressedBlock {
     private BlockRenderType renderType = BlockRenderType.SOLID;
     private boolean noOcclusion = false;
     private int light = 0;
-    private SoundType soundType;
     private List<ResourceLocation> itemTags;
     private List<ResourceLocation> blockTags;
 
@@ -224,19 +220,6 @@ public class CompressedBlock {
                     module.error("light in the compressed object for {} isn't a int", getBlock());
                 }
             }
-            if (json.has("soundType")) {
-                if (json.get("soundType").isJsonPrimitive() && json.getAsJsonPrimitive("soundType").isString()) {
-                    String type = json.getAsJsonPrimitive("soundType").getAsString().toLowerCase(Locale.ROOT);
-                    SoundType soundType = SoundTypeHelper.INSTANCE.getTypes().getOrDefault(type,null);
-                    if (soundType == null) {
-                        module.warn("soundType in the compressed object for {} isn't a valid SoundType", getBlock());
-                        return;
-                    }
-                    this.soundType = soundType;
-                } else {
-                    module.error("soundType in the compressed object for {} isn't a string", getBlock());
-                }
-            }
             if (json.has("tags")) {
                 if (json.get("tags").isJsonObject()) {
                     JsonObject tags = json.getAsJsonObject("tags");
@@ -305,10 +288,6 @@ public class CompressedBlock {
 
     public int getLight() {
         return light;
-    }
-
-    public SoundType getSoundType() {
-        return soundType;
     }
 
     public List<ResourceLocation> getItemTags() {

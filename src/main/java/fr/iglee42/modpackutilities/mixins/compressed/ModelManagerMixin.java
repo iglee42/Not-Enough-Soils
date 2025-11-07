@@ -7,24 +7,20 @@ import fr.iglee42.modpackutilities.modules.compressed.CompressedModule;
 import fr.iglee42.modpackutilities.utils.LangFormatter;
 import fr.iglee42.modpackutilities.utils.TextureLayerApplier;
 import net.minecraft.client.resources.model.ModelManager;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.io.IOException;
 import java.util.AbstractMap;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -33,7 +29,7 @@ import java.util.concurrent.Executor;
 @Mixin(ModelManager.class)
 public class ModelManagerMixin {
 
-    @Inject(method = "reload",at=  @At("HEAD"),remap = false)
+    @Inject(method = "reload",at=  @At("HEAD"))
     private void compressed$createNewTextures(PreparableReloadListener.PreparationBarrier p_249079_, ResourceManager resourceManager, ProfilerFiller p_250336_, ProfilerFiller p_252324_, Executor p_250550_, Executor p_249221_, CallbackInfoReturnable<CompletableFuture<Void>> cir){
         Map<ResourceLocation, Resource> resources = new HashMap<>();
         resourceManager.listResources("textures", path -> path.getPath().endsWith(".png")).entrySet().stream().filter(e->e.getValue()!= null).map(r->{

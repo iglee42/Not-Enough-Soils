@@ -1,7 +1,7 @@
 package fr.iglee42.modpackutilities.resourcepack;
 
 import fr.iglee42.modpackutilities.IgleeModpackUtilities;
-import net.neoforged.fml.loading.FMLPaths;
+import net.minecraftforge.fml.loading.FMLPaths;
 
 import java.io.File;
 import java.io.IOException;

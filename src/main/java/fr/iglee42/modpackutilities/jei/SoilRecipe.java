@@ -13,7 +13,7 @@ import fr.iglee42.modpackutilities.modules.soils.SoilsModule;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.fml.ModList;
+import net.minecraftforge.fml.ModList;
 
 public record SoilRecipe(ItemStack seed, ItemStack crux, List<ItemStack> soils) {
 

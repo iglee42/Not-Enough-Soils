@@ -14,6 +14,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -46,7 +47,7 @@ public class CropCreatorMixin {
                             }
                         } else {
                             ResourceLocation value = ResourceLocation.parse(j.getAsJsonPrimitive().getAsString());
-                            Optional<Holder.Reference<Block>> optionalValue = BuiltInRegistries.BLOCK.getHolder(value);
+                            Optional<Holder<Block>> optionalValue =  ForgeRegistries.BLOCKS.getHolder(value);
                             if (optionalValue.isEmpty())
                                 throw new JsonParseException("Invalid soil value : " + value);
                             else blocks.add(optionalValue.get().value());
@@ -67,7 +68,7 @@ public class CropCreatorMixin {
                     }
                 } else {
                     ResourceLocation value = ResourceLocation.parse(strValue);
-                    Optional<Holder.Reference<Block>> optionalValue = BuiltInRegistries.BLOCK.getHolder(value);
+                    Optional<Holder<Block>> optionalValue = ForgeRegistries.BLOCKS.getHolder(value);
                     if (optionalValue.isEmpty())
                         throw new JsonParseException("Invalid soil value : " + value);
                     castedCrop.snes$setCustomSoils(List.of(optionalValue.get().value()));

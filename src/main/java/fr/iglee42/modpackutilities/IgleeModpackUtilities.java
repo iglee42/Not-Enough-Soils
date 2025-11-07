@@ -11,11 +11,12 @@ import fr.iglee42.modpackutilities.resourcepack.IMUPackFinder;
 import fr.iglee42.modpackutilities.resourcepack.PathConstant;
 import fr.iglee42.modpackutilities.utils.Module;
 import net.minecraft.server.packs.PackType;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.loading.FMLPaths;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.AddPackFindersEvent;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.AddPackFindersEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLPaths;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -34,7 +35,8 @@ public class IgleeModpackUtilities {
     public static List<Module> MODULES;
     private static File configFile;
 
-    public IgleeModpackUtilities(IEventBus modEventBus) {
+    public IgleeModpackUtilities() {
+        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         initModules(modEventBus);
         modEventBus.addListener(this::registerPackRepo);
 
@@ -49,7 +51,7 @@ public class IgleeModpackUtilities {
     private static void initModules(IEventBus modEventBus) {
         MODULES.stream().filter(Module::isLoaded).forEach(m->{
             try {
-                m.init(modEventBus, NeoForge.EVENT_BUS);
+                m.init(modEventBus, MinecraftForge.EVENT_BUS);
             } catch (Exception e){
                 m.fatal("Failed to load {} module : {}",m.getName(),e);
             }

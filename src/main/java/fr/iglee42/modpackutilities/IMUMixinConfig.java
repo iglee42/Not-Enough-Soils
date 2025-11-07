@@ -8,7 +8,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import fr.iglee42.modpackutilities.utils.Module;
 import fr.iglee42.modpackutilities.utils.RequiresMods;
-import net.neoforged.fml.loading.LoadingModList;
+
+import net.minecraftforge.fml.loading.LoadingModList;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
