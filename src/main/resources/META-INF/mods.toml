@@ -9,6 +9,7 @@ displayName = "${mod_name}"
 displayURL = "iglee.fr"
 authors = "${mod_authors}"
 description = '''${mod_description}'''
+logoFile = "logo.png"
 
 [[dependencies."${mod_id}"]]
 modId = "forge"
