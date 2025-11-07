@@ -1,6 +1,7 @@
 modLoader="javafml"
 loaderVersion="${loader_version_range}"
 license="${mod_license}"
+
 [[mods]]
 modId="${mod_id}"
 version="${mod_version}"
@@ -16,7 +17,7 @@ config="${mod_id}.mixins.json"
 file="META-INF/accesstransformer.cfg"
 
 description='''${mod_description}'''
-[[dependencies.${mod_id}]] #optional
+[[dependencies.${mod_id}]]
 modId="neoforge"
 mandatory=true
 versionRange="${neo_version_range}"
