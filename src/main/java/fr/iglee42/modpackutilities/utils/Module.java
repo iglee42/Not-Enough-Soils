@@ -173,7 +173,7 @@ public abstract class Module {
 
     protected void recipe(String name, String type, JsonObject otherInfos){
         try {
-            File file = new File(getFolderFor("recipe",false).toFile(), name+".json");
+            File file = new File(getFolderFor("recipes",false).toFile(), name+".json");
             file.getParentFile().mkdirs();
             String jsonBase =   "{\n"+
                     "   \"type\": \""+ type +"\""+(!otherInfos.keySet().isEmpty() ? ",":"")+"\n";
@@ -214,9 +214,8 @@ public abstract class Module {
 
     public void generateTagsFile(){
         for (ResourceKey<?> key : tags.keySet()){
-            String tagFolder = ForgeHooks.prefixNamespace(key.registry());
             try {
-                File file = new File(PathConstant.BASE_DATA_PATH.resolve(key.location().getNamespace() +"/tags/"+tagFolder).toFile(), key.location().getPath()+".json");
+                File file = new File(PathConstant.BASE_DATA_PATH.resolve(key.location().getNamespace() + "/" +TagManager.getTagDir(ResourceKey.createRegistryKey(key.registry()))).toFile(), key.location().getPath()+".json");
                 file.getParentFile().mkdirs();
                 JsonObject json = new JsonObject();
                 json.addProperty("replace", false);
@@ -244,7 +243,7 @@ public abstract class Module {
 
     protected void lootTable(String type, String name, LootTable lootTable){
         try {
-            File file = new File(getFolderFor("loot_table",false).toFile(), type+"/"+name+".json");
+            File file = new File(getFolderFor("loot_tables",false).toFile(), type+"/"+name+".json");
             file.getParentFile().mkdirs();
             FileWriter writer = new FileWriter(file);
             JsonElement lt = LootDataType.TABLE.parser().toJsonTree(lootTable);

@@ -277,7 +277,7 @@ public class CompressedModule extends Module {
                         keys.add("#", key);
                         shaped.add("key", keys);
                         JsonObject result = new JsonObject();
-                        result.addProperty("id",getName() + ":compressed_" + c.getBlock().getPath() + "_" + finalI);
+                        result.addProperty("item",getName() + ":compressed_" + c.getBlock().getPath() + "_" + finalI);
                         shaped.add("result",result);
                         recipe("compressed_" + c.getBlock().getPath() + "_" + finalI, "minecraft:crafting_shaped", shaped);
                     }
@@ -289,7 +289,7 @@ public class CompressedModule extends Module {
                         ingredients.add(key);
                         shapeless.add("ingredients", ingredients);
                         JsonObject result = new JsonObject();
-                        result.addProperty("id", (finalI > 1 ? getName() + ":compressed_" + c.getBlock().getPath() + "_" + (finalI - 1) : c.getBlock()).toString());
+                        result.addProperty("item", (finalI > 1 ? getName() + ":compressed_" + c.getBlock().getPath() + "_" + (finalI - 1) : c.getBlock()).toString());
                         result.addProperty("count", 9);
                         shapeless.add("result",result);
                         recipe("compressed_" + c.getBlock().getPath() + "_" + finalI+"_decompress", "minecraft:crafting_shapeless", shapeless);
