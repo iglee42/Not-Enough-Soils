@@ -42,7 +42,7 @@ import java.util.*;
 public class CompressedModule extends Module {
 
     public static final String DEFAULT_LAYER = "compressed:block/layer_{{layer}}";
-    private static final ResourceLocation TAB_KEY = ResourceLocation.fromNamespaceAndPath("compressed","main");
+    private static ResourceLocation TAB_KEY;
 
     private final List<CompressedBlock> COMPRESSED;
     private int maxCompressedTiers;
@@ -58,6 +58,7 @@ public class CompressedModule extends Module {
     @Override
     public void init(IEventBus modEventBus, IEventBus forgeEventBus) throws Exception {
         super.init(modEventBus, forgeEventBus);
+        TAB_KEY = ResourceLocation.fromNamespaceAndPath("compressed","main");
         modEventBus.addListener(this::registerEvent);
         modEventBus.addListener(this::addItemsToCreativeTab);
         JsonObject config = getConfig();
