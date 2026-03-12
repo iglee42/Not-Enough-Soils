@@ -13,7 +13,7 @@ public class IMUJEI implements IModPlugin {
 
     @Override
     public ResourceLocation getPluginUid() {
-        return ResourceLocation.fromNamespaceAndPath("igleemods","snes");
+        return new ResourceLocation("igleemods","snes");
     }
 
     @Override

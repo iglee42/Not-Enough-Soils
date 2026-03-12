@@ -1,13 +1,11 @@
 package fr.iglee42.modpackutilities;
 
-import java.io.InputStream;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.io.*;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import fr.iglee42.modpackutilities.utils.Module;
-import fr.iglee42.modpackutilities.utils.RequiresMods;
+import fr.iglee42.modpackutilities.utils.ModuleLoader;
 
 import net.minecraftforge.fml.loading.LoadingModList;
 import org.objectweb.asm.ClassReader;
@@ -34,7 +32,7 @@ public class IMUMixinConfig implements IMixinConfigPlugin{
 
     @Override
     public void onLoad(String arg0) {
-        IgleeModpackUtilities.loadModules();
+        ModuleLoader.loadModules();
     }
 
     @Override
