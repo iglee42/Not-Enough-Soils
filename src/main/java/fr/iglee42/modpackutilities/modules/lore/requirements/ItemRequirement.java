@@ -7,6 +7,7 @@ import fr.iglee42.modpackutilities.modules.lore.LoreModule;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import org.jetbrains.annotations.NotNull;
 
 public record ItemRequirement(Item item, int count) implements LoreRequirement {
 
@@ -26,5 +27,10 @@ public record ItemRequirement(Item item, int count) implements LoreRequirement {
     @Override
     public RequirementType<? extends LoreRequirement> getType() {
         return LoreModule.ITEM_REQUIREMENT;
+    }
+
+    @Override
+    public @NotNull String toString() {
+        return count() + "x " + item.getDescription().getString();
     }
 }

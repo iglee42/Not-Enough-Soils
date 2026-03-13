@@ -6,6 +6,7 @@ import com.mojang.math.Axis;
 import fr.iglee42.modpackutilities.modules.lore.block.entity.LoreEntityBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -13,8 +14,8 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.phys.Vec3;
 
 public class LoreEntityBlockRenderer implements BlockEntityRenderer<LoreEntityBlockEntity> {
 
@@ -34,15 +35,20 @@ public class LoreEntityBlockRenderer implements BlockEntityRenderer<LoreEntityBl
         poseStack.pushPose();
 
         // necessary transforms to make models render in the right place
-        poseStack.translate(0.5, 2.02, 0.5);
+        poseStack.translate(0.5, 2.02 + blockEntity.getYOffset(), 0.5);
         poseStack.scale(1f, -1f, -1f);
 
         // face the player
         poseStack.mulPose(Axis.YP.rotationDegrees(180 + Minecraft.getInstance().gameRenderer.getMainCamera().getYRot()));
-
-        // actual model rendering work
         EntityType<R> type = (EntityType<R>) EntityType.byString(blockEntity.getModelId().toString()).orElse(EntityType.VILLAGER);
         R entity = type.create(blockEntity.getLevel());
+        entity.setPos(Vec3.ZERO);
+        entity.setXRot(0);
+        entity.setYRot(0);
+        if (entity instanceof Mob lv)lv.setNoAi(true);
+        if (entity instanceof AgeableMob age){
+            age.setBaby(false);
+        }
         EntityRenderer<R> renderer = (EntityRenderer<R>) Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(entity);
         if (!(renderer instanceof LivingEntityRenderer<?,?> lvrenderer)) {
             poseStack.popPose();

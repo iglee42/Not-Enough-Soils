@@ -153,7 +153,7 @@ public class LoreModule extends Module {
         protected void apply(Map<ResourceLocation, JsonElement> elements, ResourceManager p_10794_, ProfilerFiller p_10795_) {
             files.clear();
 
-            elements.forEach((id,json)-> LoreFile.fromJson(json,registryAccess).ifPresent(file->files.put(id,file)));
+            elements.forEach((id,json)-> LoreFile.fromJson(json,registryAccess).ifPresent(file->files.put(file.id(),file)));
 
             info("Loaded {} lore files",files.size());
 

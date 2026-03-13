@@ -13,6 +13,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,6 +25,7 @@ public class LoreEntityBlockEntity extends BlockEntity {
     private ResourceLocation modelId = ResourceLocation.withDefaultNamespace("villager");
     @Nullable
     private ResourceLocation fileId;
+    private double yOffset = 0;
 
 
     public LoreEntityBlockEntity( BlockPos pos, BlockState state) {
@@ -37,6 +39,7 @@ public class LoreEntityBlockEntity extends BlockEntity {
             tag.putString("file_id", fileId.toString());
         if (modelId != null)
             tag.putString("model_id", modelId.toString());
+        tag.putDouble("y_offset", yOffset);
         return tag;
     }
 
@@ -58,6 +61,7 @@ public class LoreEntityBlockEntity extends BlockEntity {
                 ResourceLocation.withDefaultNamespace("villager");
 
         entityId = tag.contains("entity_id") ? tag.getUUID("entity_id") : Util.NIL_UUID;
+        yOffset = tag.contains("y_offset") ? tag.getDouble("y_offset") : 0;
     }
 
     @Override
@@ -73,6 +77,8 @@ public class LoreEntityBlockEntity extends BlockEntity {
         if (entityId != Util.NIL_UUID) {
             tag.putUUID("entity_id", entityId);
         }
+
+        tag.putDouble("y_offset", yOffset);
     }
 
     @Override
@@ -92,16 +98,32 @@ public class LoreEntityBlockEntity extends BlockEntity {
         return modelId;
     }
 
+    public double getYOffset() {
+        return yOffset;
+    }
+
     public void tickServer(ServerLevel level){
         Entity entity = level.getEntity(entityId);
+
+        if (entity instanceof LoreEntity e){
+            e.setEntity(getModelId());
+            e.setBEPos(getBlockPos());
+            e.setPos(Vec3.atCenterOf(getBlockPos()).add(0,getYOffset(),0));
+        }
         if (entity == null && getFileId() != null){
             LoreEntity newEntity = new LoreEntity(LoreRegistries.ENTITY.get(), level);
-            newEntity.setPos(Vec3.atCenterOf(getBlockPos()));
+            newEntity.setPos(Vec3.atCenterOf(getBlockPos()).add(0,getYOffset(),0));
             newEntity.setFileId(getFileId());
             newEntity.setEntity(getModelId());
+            newEntity.setBEPos(getBlockPos());
             level.addFreshEntity(newEntity);
             entityId = newEntity.getUUID();
             setChanged();
         }
+    }
+
+    @Override
+    public AABB getRenderBoundingBox() {
+        return super.getRenderBoundingBox().expandTowards(0,getYOffset() + 2,0);
     }
 }

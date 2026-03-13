@@ -37,4 +37,6 @@ public interface LoreRequirement {
             consumer.accept(f,buf);
         });
     }
+
+    String toString();
 }
