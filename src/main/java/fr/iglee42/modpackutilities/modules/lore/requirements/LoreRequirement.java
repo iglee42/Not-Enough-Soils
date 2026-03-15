@@ -5,6 +5,7 @@ import com.mojang.serialization.MapCodec;
 import fr.iglee42.modpackutilities.modules.lore.LoreModule;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.List;
@@ -38,5 +39,5 @@ public interface LoreRequirement {
         });
     }
 
-    String toString();
+    Component getTitle();
 }

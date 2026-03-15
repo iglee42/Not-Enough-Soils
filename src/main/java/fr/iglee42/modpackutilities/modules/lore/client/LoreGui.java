@@ -1,5 +1,6 @@
 package fr.iglee42.modpackutilities.modules.lore.client;
 
+import fr.iglee42.igleelib.api.utils.MouseUtil;
 import fr.iglee42.modpackutilities.IgleeModpackUtilities;
 import fr.iglee42.modpackutilities.modules.lore.ClientLoreModule;
 import fr.iglee42.modpackutilities.modules.lore.LoreEntry;
@@ -7,8 +8,10 @@ import fr.iglee42.modpackutilities.modules.lore.LoreFile;
 import fr.iglee42.modpackutilities.modules.lore.LoreModule;
 import fr.iglee42.modpackutilities.modules.lore.network.UnlockLoreEntryPacket;
 import fr.iglee42.modpackutilities.modules.lore.progress.LoreProgress;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -72,8 +75,8 @@ public class LoreGui extends Screen {
                 .bounds(this.width / 2 - 50, doneButtonY, 100, 20)
                 .build());
 
-        this.unlockButton = this.addWidget(Button.builder(Component.literal("Unlock next entry"), button -> unlockNextEntry())
-                .bounds(getListX() + 8, 8, 150, 20)
+        this.unlockButton = this.addWidget(Button.builder(Component.literal("Complete entry"), button -> unlockNextEntry())
+                .bounds(getListX() + 8, 8, 100, 20)
                 .build());
 
         this.updateUnlockButton();
@@ -118,14 +121,19 @@ public class LoreGui extends Screen {
         int nextUnlockableHeight = 0;
         if (this.nextUnlockable != null && !this.nextUnlockable.canFulfillRequirements(player)) {
             // Has next entry but requirements not fulfilled - show requirements
-            nextUnlockableHeight = getNextUnlockableHeight(this.nextUnlockable, listWidth);
+            nextUnlockableHeight = getNextUnlockableHeight(this.nextUnlockable, listWidth) + ENTRY_SPACING;
         } else if (this.nextUnlockable == null) {
             // No next entry - show finished message
-            nextUnlockableHeight = getFinishedHeight();
+            nextUnlockableHeight = getFinishedHeight() + ENTRY_SPACING;
+        }
+
+        int rewardsHeight = 0;
+        if (this.nextUnlockable != null && this.nextUnlockable.showRewards()){
+            rewardsHeight = getRewardsHeight(this.nextUnlockable, listWidth) + ENTRY_SPACING;
         }
 
         int unlockHeight = this.unlockButton != null && this.unlockButton.visible ? this.unlockButton.getHeight() + UNLOCK_BUTTON_GAP : 0;
-        this.totalScrollableHeight = LIST_CONTENT_TOP_PADDING + this.contentHeight + nextUnlockableHeight + unlockHeight + LIST_CONTENT_TOP_PADDING;
+        this.totalScrollableHeight = LIST_CONTENT_TOP_PADDING + this.contentHeight + nextUnlockableHeight + rewardsHeight + unlockHeight + LIST_CONTENT_TOP_PADDING;
 
         this.scrollAmount = Mth.clamp(this.scrollAmount, 0.0D, getMaxScroll(listHeight));
 
@@ -145,7 +153,7 @@ public class LoreGui extends Screen {
             int playButtonX = getPlayButtonX(listX, listWidth);
             if (sound != SoundEvents.EMPTY) {
                 int playButtonY = y + 2;
-                guiGraphics.fill(playButtonX, playButtonY, playButtonX + ENTRY_PLAY_BUTTON_WIDTH, playButtonY + ENTRY_PLAY_BUTTON_HEIGHT, 0xAA3A3A3A);
+                guiGraphics.blitNineSliced(AbstractWidget.WIDGETS_LOCATION, playButtonX, playButtonY, ENTRY_PLAY_BUTTON_WIDTH, ENTRY_PLAY_BUTTON_HEIGHT, 20, 4, 200, 20, 0, 66+(MouseUtil.isMouseOver(mouseX,mouseY,playButtonX,playButtonY,ENTRY_PLAY_BUTTON_WIDTH,ENTRY_PLAY_BUTTON_HEIGHT) ? 20 : 0));
                 guiGraphics.drawCenteredString(this.font, "Play", playButtonX + ENTRY_PLAY_BUTTON_WIDTH / 2, playButtonY + 2, 0xE0E0E0);
             } else {
                 playButtonX = listX + listWidth - 10;
@@ -179,12 +187,21 @@ public class LoreGui extends Screen {
             renderFinishedMessage(guiGraphics, listX, y, listWidth);
         }
 
+        y+=nextUnlockableHeight;
+
+
         if (this.unlockButton != null) {
             this.unlockButton.setY(y);
             if (this.unlockButton.visible) {
                 drawStretchedTexture(guiGraphics, this.unlockButton.getX() - 4, this.unlockButton.getY() - 4, this.unlockButton.getWidth() + 8, this.unlockButton.getHeight() + 8);
                 this.unlockButton.render(guiGraphics, mouseX, mouseY, partialTick);
             }
+            y+= this.unlockButton.visible ? this.unlockButton.getHeight() + UNLOCK_BUTTON_GAP : 0;
+        }
+
+        if (this.nextUnlockable != null && this.nextUnlockable.showRewards()){
+            y += ENTRY_SPACING;
+            renderRewards(guiGraphics, listX, y, listWidth, this.nextUnlockable);
         }
 
         guiGraphics.disableScissor();
@@ -364,7 +381,7 @@ public class LoreGui extends Screen {
 
     private void renderNextUnlockableRequirements(GuiGraphics guiGraphics, int listX, int y, int listWidth, LoreEntry entry) {
         drawStretchedTexture(guiGraphics, listX + 4, y, listWidth - 8, getNextUnlockableHeight(entry, listWidth) - 4);
-        Component requirementsText = Component.literal("⚠ Requirements: ");
+        Component requirementsText = Component.literal("Requirements: ");
         String key = LoreTranslation.ENTRY_REQUIREMENTS.key(this.file, entry);
         boolean translation = Language.getInstance().has(key);
         if (translation) {
@@ -372,11 +389,31 @@ public class LoreGui extends Screen {
         }
         guiGraphics.drawString(this.font, requirementsText, listX + 8, y + 4, 0xFF6B6B, false);
 
-        int textY = y + ENTRY_HEADER_HEIGHT + ENTRY_CONTENT_MARGIN;
+        int textY = y + ENTRY_HEADER_HEIGHT;
         if (!translation) {
             for (var requirement : entry.requirements()) {
-                String reqStr = "• " + requirement;
-                for (var wrapped : this.font.split(Component.literal(reqStr), listWidth - 24)) {
+                for (var wrapped : this.font.split(Component.literal( "• " ).append(requirement.getTitle()), listWidth - 24)) {
+                    guiGraphics.drawString(this.font, wrapped, listX + 16, textY, 0xFFAA00, false);
+                    textY += LINE_HEIGHT;
+                }
+            }
+        }
+    }
+
+    private void renderRewards(GuiGraphics guiGraphics, int listX, int y, int listWidth, LoreEntry entry) {
+        drawStretchedTexture(guiGraphics, listX + 4, y, listWidth - 8, getRewardsHeight(entry, listWidth) - 4);
+        Component rewardsText = Component.literal("Rewards: ");
+        String key = LoreTranslation.ENTRY_REWARDS.key(this.file, entry);
+        boolean translation = Language.getInstance().has(key);
+        if (translation) {
+            rewardsText = Component.translatable(key);
+        }
+        guiGraphics.drawString(this.font, rewardsText, listX + 8, y + 4, ChatFormatting.DARK_GREEN.getColor(), false);
+
+        int textY = y + ENTRY_HEADER_HEIGHT;
+        if (!translation) {
+            for (var reward : entry.rewards()) {
+                for (var wrapped : this.font.split(Component.literal( "• " ).append(reward.getTitle()), listWidth - 24)) {
                     guiGraphics.drawString(this.font, wrapped, listX + 16, textY, 0xFFAA00, false);
                     textY += LINE_HEIGHT;
                 }
@@ -389,18 +426,35 @@ public class LoreGui extends Screen {
     }
 
     private int getNextUnlockableHeight(LoreEntry entry, int listWidth) {
-        int height = ENTRY_HEADER_HEIGHT + ENTRY_SPACING;
+        int height = ENTRY_HEADER_HEIGHT;
         int linesHeight = 0;
         String key = LoreTranslation.ENTRY_REQUIREMENTS.key(this.file, entry);
         if (Language.getInstance().has(key)) {
             linesHeight += this.font.split(Component.translatable(key), listWidth - 24).size() * LINE_HEIGHT;
+            height -= ENTRY_SPACING;
         } else {
             for (var requirement : entry.requirements()) {
-                String reqStr = "• " + requirement;
-                linesHeight += this.font.split(Component.literal(reqStr), listWidth - 24).size() * LINE_HEIGHT;
+                linesHeight += this.font.split(Component.literal("• ").append(requirement.getTitle()), listWidth - 24).size() * LINE_HEIGHT;
             }
+            height += ENTRY_SPACING;
         }
-        return height + ENTRY_CONTENT_MARGIN + linesHeight;
+        return height + linesHeight;
+    }
+
+    private int getRewardsHeight(LoreEntry entry, int listWidth) {
+        int height = ENTRY_HEADER_HEIGHT;
+        int linesHeight = 0;
+        String key = LoreTranslation.ENTRY_REWARDS.key(this.file, entry);
+        if (Language.getInstance().has(key)) {
+            linesHeight += this.font.split(Component.translatable(key), listWidth - 24).size() * LINE_HEIGHT;
+            height -= ENTRY_SPACING;
+        } else {
+            for (var reward : entry.rewards()) {
+                linesHeight += this.font.split(Component.literal("• ").append(reward.getTitle()), listWidth - 24).size() * LINE_HEIGHT;
+            }
+            height += ENTRY_SPACING;
+        }
+        return height + linesHeight;
     }
 
     private void drawStretchedTexture(GuiGraphics guiGraphics, int x, int y, int width, int height) {
@@ -428,7 +482,7 @@ public class LoreGui extends Screen {
         LoreEntry previous = null;
         for (LoreEntry entry : this.file.entries()) {
             if (entry.getPreviousEntry().isEmpty()) {
-                LoreModule.NET_INSTANCE.sendToServer(new UnlockLoreEntryPacket(this.file.id(), entry.id()));
+                if (!entry.isUnlocked(player)) LoreModule.NET_INSTANCE.sendToServer(new UnlockLoreEntryPacket(this.file.id(), entry.id()));
                 previous = entry;
                 continue;
             }
@@ -464,6 +518,7 @@ public class LoreGui extends Screen {
     private enum LoreTranslation {
         ENTRY_TITLE("entry.%s.title"),
         ENTRY_REQUIREMENTS("entry.%s.requirements"),
+        ENTRY_REWARDS("entry.%s.rewards"),
         FILE_NAME("title"),
         FILE_FINISHED("finished");
 

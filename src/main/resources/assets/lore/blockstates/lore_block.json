@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "imu:block/lore_block"
+    }
+  }
+}

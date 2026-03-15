@@ -1,4 +1,4 @@
-package fr.iglee42.modpackutilities.utils;
+package fr.iglee42.modpackutilities.compat.ftb.teams;
 
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;

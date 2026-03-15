@@ -106,6 +106,12 @@ repositories {
         }
     }
 
+    maven {
+        url = "https://maven.latvian.dev/releases"
+        content {
+            includeGroup "dev.latvian.mods"
+        }
+    }
 
     maven {
         url = "https://maven.architectury.dev"
@@ -129,8 +135,12 @@ dependencies {
     implementation fg.deobf("com.blakebr0.mysticalagriculture:MysticalAgriculture:${minecraft_version}-${mystical_version}")
     implementation fg.deobf("com.blakebr0.mysticalcustomization:MysticalCustomization:${minecraft_version}-${mscustomization_version}")
 
-    compileOnly("dev.ftb.mods:ftb-library-forge:${ftb_library_version}") {transitive = false}
-    compileOnly("dev.ftb.mods:ftb-teams-forge:${ftb_teams_version}") {transitive = false}
+    implementation fg.deobf("dev.ftb.mods:ftb-library-forge:${ftb_library_version}")
+    implementation fg.deobf("dev.ftb.mods:ftb-teams-forge:${ftb_teams_version}")
+    implementation fg.deobf("dev.ftb.mods:ftb-quests-forge:${ftb_quests_version}")
+    implementation fg.deobf("dev.latvian.mods:kubejs-forge:${kubejs_version}")
+    runtimeOnly fg.deobf("dev.latvian.mods:rhino-forge:2001.2.3-build.6")
+    runtimeOnly fg.deobf("dev.architectury:architectury-forge:9.2.14")
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 

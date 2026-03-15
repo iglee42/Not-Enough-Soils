@@ -6,30 +6,36 @@ import fr.iglee42.modpackutilities.IgleeModpackUtilities;
 import fr.iglee42.modpackutilities.modules.lore.progress.IProgressHandler;
 import fr.iglee42.modpackutilities.modules.lore.progress.LoreProgressManager;
 import fr.iglee42.modpackutilities.modules.lore.requirements.LoreRequirement;
+import fr.iglee42.modpackutilities.modules.lore.rewards.LoreReward;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public record  LoreEntry(ResourceLocation id, List<String> lines, List<LoreRequirement> requirements,
-                        Optional<ResourceLocation> voiceLocation) {
+                        Optional<ResourceLocation> voiceLocation, List<LoreReward> rewards, boolean hiddenRewards) {
 
     public static final Codec<LoreEntry> CODEC = RecordCodecBuilder.create(instance->
             instance.group(
                     ResourceLocation.CODEC.fieldOf("id").forGetter(o -> o.id),
                     Codec.STRING.listOf().fieldOf("lines").forGetter(o -> o.lines),
-                    LoreRequirement.CODEC.listOf().fieldOf("requirements").forGetter(o -> o.requirements),
-                    ResourceLocation.CODEC.optionalFieldOf("voice_location").forGetter(o -> o.voiceLocation)
-            ).apply(instance,LoreEntry::new));
+                    LoreRequirement.CODEC.listOf().optionalFieldOf("requirements",new ArrayList<>()).forGetter(o -> o.requirements),
+                    ResourceLocation.CODEC.optionalFieldOf("voice_location").forGetter(o -> o.voiceLocation),
+                    LoreReward.CODEC.listOf().optionalFieldOf("rewards",new ArrayList<>()).forGetter(o -> o.rewards),
+                    Codec.BOOL.optionalFieldOf("hidden_rewards",false).forGetter(o -> o.hiddenRewards)
+                    ).apply(instance,LoreEntry::new));
 
     public static LoreEntry read(FriendlyByteBuf buf){
         var id = buf.readResourceLocation();
         var lines = buf.readUtf().lines().toList();
         var requirements = LoreRequirement.readList(buf);
         var voiceLocation = buf.readOptional(FriendlyByteBuf::readResourceLocation);
-        return new LoreEntry(id,lines,requirements,voiceLocation);
+        var rewards = LoreReward.readList(buf);
+        var hiddenRewards = buf.readBoolean();
+        return new LoreEntry(id,lines,requirements,voiceLocation,rewards,hiddenRewards);
     }
 
     public Optional<LoreFile> getLoreFile() {
@@ -76,10 +82,16 @@ public record  LoreEntry(ResourceLocation id, List<String> lines, List<LoreRequi
         return client ? ClientLoreModule.getInstance() : LoreProgressManager.get();
     }
 
+    public boolean showRewards(){
+        return !rewards.isEmpty() && !hiddenRewards;
+    }
+
     public void write(FriendlyByteBuf buf){
         buf.writeResourceLocation(id);
         buf.writeUtf(String.join("\n", lines));
         LoreRequirement.writeList(buf, requirements);
         buf.writeOptional(voiceLocation,FriendlyByteBuf::writeResourceLocation);
+        LoreReward.writeList(buf, rewards);
+        buf.writeBoolean(hiddenRewards);
     }
 }

@@ -1,0 +1,37 @@
+package fr.iglee42.modpackutilities.modules.lore.rewards;
+
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import fr.iglee42.modpackutilities.modules.lore.LoreModule;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
+import org.jetbrains.annotations.NotNull;
+
+public record XPReward(int amount, boolean levels) implements LoreReward {
+
+    public static final MapCodec<XPReward> CODEC = RecordCodecBuilder.mapCodec(instance ->
+            instance.group(
+                    Codec.INT.fieldOf("amount").forGetter(r -> r.amount),
+                    Codec.BOOL.optionalFieldOf("levels",false).forGetter(r -> r.levels)
+            ).apply(instance, XPReward::new)
+    );
+
+
+    @Override
+    public void execute(Player player) {
+        if (levels) player.giveExperienceLevels(amount());
+        else player.giveExperiencePoints(amount());
+    }
+
+    @Override
+    public RewardType<? extends LoreReward> getType() {
+        return LoreModule.XP_REWARD;
+    }
+
+    @Override
+    public @NotNull Component getTitle() {
+        return Component.literal(amount() + " experience " + (levels ? "levels": "points"));
+    }
+}

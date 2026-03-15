@@ -1,8 +1,5 @@
 {
   "category.imu.soils": "Soils and Cruxes",
   "itemGroup.imu.compressed": "Compressed Blocks",
-
-  "text.lore.lore_1.line_0": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-  "text.lore.lore_1.line_1": "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-  "text.lore.lore_1.line_2": "§cUt enim ad minim veniam,\n §6quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+  "block.lore.lore_block": "Lore Block"
 }

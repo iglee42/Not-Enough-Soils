@@ -3,6 +3,8 @@ package fr.iglee42.modpackutilities.modules.lore;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import fr.iglee42.modpackutilities.compat.ftb.lib.FTBLibraryHelper;
+import fr.iglee42.modpackutilities.compat.kubejs.KubeJSHelper;
 import fr.iglee42.modpackutilities.modules.lore.client.LoreEntityBlockRenderer;
 import fr.iglee42.modpackutilities.modules.lore.client.LoreEntityRenderer;
 import fr.iglee42.modpackutilities.modules.lore.network.SyncLoreFilesPacket;
@@ -12,6 +14,11 @@ import fr.iglee42.modpackutilities.modules.lore.progress.LoreProgressManager;
 import fr.iglee42.modpackutilities.modules.lore.requirements.ItemRequirement;
 import fr.iglee42.modpackutilities.modules.lore.requirements.LoreRequirement;
 import fr.iglee42.modpackutilities.modules.lore.requirements.RequirementType;
+import fr.iglee42.modpackutilities.compat.ftb.quests.FTBQuestsHelper;
+import fr.iglee42.modpackutilities.modules.lore.rewards.ItemReward;
+import fr.iglee42.modpackutilities.modules.lore.rewards.LoreReward;
+import fr.iglee42.modpackutilities.modules.lore.rewards.RewardType;
+import fr.iglee42.modpackutilities.modules.lore.rewards.XPReward;
 import fr.iglee42.modpackutilities.utils.Module;
 import fr.iglee42.modpackutilities.utils.ModuleLoader;
 import net.minecraft.core.RegistryAccess;
@@ -25,6 +32,7 @@ import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
@@ -43,8 +51,11 @@ import java.util.function.Supplier;
 public class LoreModule extends Module {
 
     public static Supplier<IForgeRegistry<RequirementType<? extends LoreRequirement>>> LORE_REQUIREMENTS;
+    public static Supplier<IForgeRegistry<RewardType<? extends LoreReward>>> LORE_REWARDS;
 
     public static RequirementType<ItemRequirement> ITEM_REQUIREMENT;
+    public static RewardType<ItemReward> ITEM_REWARD;
+    public static RewardType<XPReward> XP_REWARD;
 
     private final Map<ResourceLocation,LoreFile> files;
 
@@ -93,6 +104,9 @@ public class LoreModule extends Module {
         LoreRegistries.register(modEventBus);
         forgeEventBus.addListener(this::registerReloadListener);
         forgeEventBus.addListener(this::playerLogin);
+        if (ModList.get().isLoaded("ftblibrary")) FTBLibraryHelper.registerLore(modEventBus);
+        if (ModList.get().isLoaded("ftbquests")) FTBQuestsHelper.registerLore(modEventBus);
+        if (ModList.get().isLoaded("kubejs")) KubeJSHelper.registerLore(modEventBus);
         SimpleChannel net = NetworkRegistry.ChannelBuilder
                 .named(ResourceLocation.fromNamespaceAndPath(getName(), "messages"))
                 .networkProtocolVersion(() -> "1.0")
@@ -111,6 +125,7 @@ public class LoreModule extends Module {
 
     private void registerRegistries(NewRegistryEvent event){
         LORE_REQUIREMENTS = event.create(RegistryBuilder.<RequirementType<? extends LoreRequirement>>of(LoreKeys.LORE_REQUIREMENT_KEY.location()));
+        LORE_REWARDS = event.create(RegistryBuilder.<RewardType<? extends LoreReward>>of(LoreKeys.LORE_REWARD_KEY.location()));
     }
 
     private void register(RegisterEvent event){
@@ -124,6 +139,27 @@ public class LoreModule extends Module {
                     buf.writeInt(req.count());
                 });
                 event.register(LoreKeys.LORE_REQUIREMENT_KEY,ResourceLocation.fromNamespaceAndPath(getName(),"item"),()->ITEM_REQUIREMENT);
+        }
+        if (event.getRegistryKey().equals(LoreKeys.LORE_REWARD_KEY)){
+            ITEM_REWARD = new RewardType<>(ItemReward.CODEC,buf->{
+                var item = buf.readById(BuiltInRegistries.ITEM);
+                var count = buf.readInt();
+                return new ItemReward(item,count);
+            },(req,buf)->{
+                buf.writeId(BuiltInRegistries.ITEM,req.item());
+                buf.writeInt(req.count());
+            });
+
+            XP_REWARD = new RewardType<>(XPReward.CODEC,buf->{
+                var amount = buf.readInt();
+                var levels = buf.readBoolean();
+                return new XPReward(amount,levels);
+            },(req,buf)->{
+                buf.writeInt(req.amount());
+                buf.writeBoolean(req.levels());
+            });
+            event.register(LoreKeys.LORE_REWARD_KEY,ResourceLocation.fromNamespaceAndPath(getName(),"item"),()->ITEM_REWARD);
+            event.register(LoreKeys.LORE_REWARD_KEY,ResourceLocation.fromNamespaceAndPath(getName(),"xp"),()->XP_REWARD);
         }
     }
 

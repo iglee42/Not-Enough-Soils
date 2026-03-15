@@ -3,7 +3,10 @@ package fr.iglee42.modpackutilities.modules.lore.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import fr.iglee42.modpackutilities.modules.lore.ClientLoreModule;
+import fr.iglee42.modpackutilities.modules.lore.LoreEntry;
 import fr.iglee42.modpackutilities.modules.lore.block.entity.LoreEntityBlockEntity;
+import fr.iglee42.modpackutilities.modules.lore.progress.PerFileProgress;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HierarchicalModel;
@@ -16,6 +19,9 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.phys.Vec3;
+
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class LoreEntityBlockRenderer implements BlockEntityRenderer<LoreEntityBlockEntity> {
 
@@ -31,6 +37,15 @@ public class LoreEntityBlockRenderer implements BlockEntityRenderer<LoreEntityBl
         if (blockEntity.getFileId() == null) {
             return;
         }
+
+        AtomicBoolean hasFinishedFile = new AtomicBoolean(false);
+        ClientLoreModule.getInstance().getLoreFile(blockEntity.getFileId()).ifPresent(file -> {
+            if (ClientLoreModule.getInstance().getProgress(Minecraft.getInstance().player).progress().containsKey(file.id())) {
+                PerFileProgress progress = ClientLoreModule.getInstance().getProgress(Minecraft.getInstance().player).progress().get(file.id());
+                Optional<LoreEntry> entry = file.getLastEntry();
+                entry.ifPresent(loreEntry -> hasFinishedFile.set(progress.hasCompletedEntry(loreEntry.id())));
+            }
+        });
 
         poseStack.pushPose();
 
@@ -57,7 +72,7 @@ public class LoreEntityBlockRenderer implements BlockEntityRenderer<LoreEntityBl
 
         EntityModel<?> model = lvrenderer.getModel();
         VertexConsumer vertexBuilder = bufferSource.getBuffer(RenderType.entityTranslucent(renderer.getTextureLocation(entity)));
-        model.renderToBuffer(poseStack, vertexBuilder, LightTexture.FULL_BRIGHT,packedOverlay,9/16f,1f,1f,9/16f);
+        model.renderToBuffer(poseStack, vertexBuilder, LightTexture.FULL_BRIGHT,packedOverlay,9/16f,1f,hasFinishedFile.get() ? 8/16f: 1f,9/16f);
 
         poseStack.popPose();
     }
