@@ -16,6 +16,7 @@ public class ModuleLoader {
 
     public static void loadModules() {
         List<Modules> modules = new ArrayList<>(Arrays.asList(Modules.values()));
+        modules.removeIf(Modules::isDisabled);
         LOADED_MODULES = new HashSet<>();
         File configFile = new File(FMLPaths.CONFIGDIR.get().toFile(),"imu/modules.json");
         configFile.getParentFile().mkdirs();
@@ -54,8 +55,21 @@ public class ModuleLoader {
     public enum Modules{
         SOILS,
         COMPRESSED,
-        LORE
+        LORE(true)
         ;
 
+        private boolean disabled;
+
+        Modules() {
+            this(false);
+        }
+
+        Modules(boolean disabled) {
+            this.disabled = disabled;
+        }
+
+        public boolean isDisabled() {
+            return disabled;
+        }
     }
 }
