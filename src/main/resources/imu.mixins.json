@@ -6,8 +6,9 @@
   "refmap": "imu.refmap.json",
   "plugin": "fr.iglee42.modpackutilities.IMUMixinConfig",
   "mixins": [
-    "soils.BushBlockMixin",
+    "compressed.GameDataMixin",
     "soils.BlockMixin",
+    "soils.BushBlockMixin",
     "soils.mscustomization.CropCreatorMixin",
     "soils.mscustomization.CropModifierMixin",
     "soils.mystical.CropMixin",

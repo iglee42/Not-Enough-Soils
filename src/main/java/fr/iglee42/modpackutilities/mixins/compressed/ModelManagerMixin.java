@@ -3,6 +3,7 @@ package fr.iglee42.modpackutilities.mixins.compressed;
 import com.mojang.datafixers.util.Either;
 import com.mojang.logging.LogUtils;
 import fr.iglee42.modpackutilities.IgleeModpackUtilities;
+import fr.iglee42.modpackutilities.modules.compressed.CompressedBlock;
 import fr.iglee42.modpackutilities.modules.compressed.CompressedModule;
 import fr.iglee42.modpackutilities.utils.LangFormatter;
 import fr.iglee42.modpackutilities.utils.TextureLayerApplier;
@@ -25,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.function.Predicate;
 
 @Mixin(ModelManager.class)
 public class ModelManagerMixin {
@@ -41,7 +43,7 @@ public class ModelManagerMixin {
             LogUtils.getLogger().info("Creating textures for {}, your game may lag !", module.getName());
             for (int i = 1; i <= module.getMaxCompressedTiers(); i++) {
                 int finalI = i;
-                module.getCompressedBlocks().forEach(c -> {
+                module.getCompressedBlocks().stream().filter(Predicate.not(CompressedBlock::isDisabled)).forEach(c -> {
                     if (FMLEnvironment.dist == Dist.CLIENT) {
                         c.getTextures().forEach((s, e) -> {
                             ResourceLocation location = module.getTexture(c, s);
