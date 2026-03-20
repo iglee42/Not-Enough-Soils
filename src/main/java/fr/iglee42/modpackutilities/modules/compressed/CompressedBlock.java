@@ -32,6 +32,7 @@ public class CompressedBlock {
     private SoundType soundType;
     private List<ResourceLocation> itemTags;
     private List<ResourceLocation> blockTags;
+    private boolean disabled;
 
     public CompressedBlock(ResourceLocation block) {
         this.block = block;
@@ -317,6 +318,14 @@ public class CompressedBlock {
 
     public List<ResourceLocation> getBlockTags() {
         return blockTags;
+    }
+
+    public boolean isDisabled() {
+        return disabled;
+    }
+
+    protected void setDisabled(boolean disabled) {
+        this.disabled = disabled;
     }
 
     public enum BlockRenderType {

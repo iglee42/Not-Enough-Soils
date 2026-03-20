@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.mojang.datafixers.util.Either;
 import com.mojang.logging.LogUtils;
+import fr.iglee42.igleelib.api.utils.ModsUtils;
 import fr.iglee42.modpackutilities.resourcepack.generation.TextureKey;
 import fr.iglee42.modpackutilities.utils.LangFormatter;
 import fr.iglee42.modpackutilities.utils.Module;
@@ -39,6 +40,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.function.Predicate;
 
 public class CompressedModule extends Module {
 
@@ -76,11 +78,6 @@ public class CompressedModule extends Module {
             ResourceLocation block = ResourceLocation.tryParse(e.getKey());
             if (block == null){
                 warn("Block \"{}\" in the compressed json isn't a valid ResourceLocation",e.getKey());
-                return;
-            }
-            Optional<Holder.Reference<Block>> optionalValue = BuiltInRegistries.BLOCK.getHolder(block);
-            if (optionalValue.isEmpty()) {
-                warn("Block entry \"{}\" isn't a valid block", block);
                 return;
             }
             if (COMPRESSED.stream().anyMatch(c->c.getBlock().equals(block))){
@@ -149,13 +146,13 @@ public class CompressedModule extends Module {
             else
                 error("generateRecipes in the compressed json must be a boolean (true/false)");
         }
-        info("Initialized {} module successfully with {} compressed blocks",getName(),COMPRESSED.size());
+        info("Initialized {} module successfully with {} potentials compressed blocks",getName(),COMPRESSED.size());
 
     }
 
     private void addItemsToCreativeTab(BuildCreativeModeTabContentsEvent event){
         if (event.getTabKey().equals(TAB_KEY)){
-            COMPRESSED.forEach(c->{
+            COMPRESSED.stream().filter(Predicate.not(CompressedBlock::isDisabled)).forEach(c->{
                 for (int i = 1; i <= maxCompressedTiers; i++){
                     if (c.getItemForTier(i) != null)
                         event.accept(c.getItemForTier(i));
@@ -243,7 +240,7 @@ public class CompressedModule extends Module {
         for (int i = 1; i <= maxCompressedTiers; i++){
             int finalI = i;
 
-            COMPRESSED.forEach(c->{
+            COMPRESSED.stream().filter(Predicate.not(CompressedBlock::isDisabled)).forEach(c->{
                 blockstate("compressed_" + c.getBlock().getPath() + "_"+finalI,getName() + ":block/"+"compressed_" + c.getBlock().getPath() + "_"+finalI);
                 model("block","compressed_" + c.getBlock().getPath() + "_"+finalI,c.isSingleTexture() ? "block/cube_all": c.getCustomParent().toString(),c.getTextures().keySet().stream().map(
                         k->{
@@ -258,7 +255,7 @@ public class CompressedModule extends Module {
                 model("item","compressed_" + c.getBlock().getPath() + "_"+finalI,getName() + ":block/"+"compressed_" + c.getBlock().getPath() + "_"+finalI,new TextureKey[]{},"");
                 if (c.getBlockForTier(finalI) != null){
                     Map<String, Object> ctx = Map.of(
-                            "type", Component.translatable(BuiltInRegistries.BLOCK.get(c.getBlock()).getDescriptionId()).getString(),
+                            "type", ModsUtils.getUpperName(c.getBlock().getPath(),"_"),
                             "tier", finalI
                     );
 
@@ -334,5 +331,17 @@ public class CompressedModule extends Module {
 
     public Either<String, Map<Integer, String>> getLayers() {
         return layers;
+    }
+
+    public void validateBlocks() {
+        COMPRESSED.forEach(b->{
+            Optional<Holder.Reference<Block>> optionalValue = BuiltInRegistries.BLOCK.getHolder(b.getBlock());
+            if (optionalValue.isEmpty()) {
+                warn("Block entry \"{}\" isn't a valid block", b.getBlock());
+                b.setDisabled(true);
+            }
+        });
+
+        info("Found {} valid compressed blocks for {} module. {} invalid blocks found !", COMPRESSED.stream().filter(Predicate.not(CompressedBlock::isDisabled)).count(), getName(), COMPRESSED.stream().filter(CompressedBlock::isDisabled).count());
     }
 }
