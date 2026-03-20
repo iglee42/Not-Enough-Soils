@@ -58,7 +58,6 @@ public class CompressedModule extends Module {
         TAB_KEY = ResourceLocation.fromNamespaceAndPath("compressed","main");
         modEventBus.addListener(this::registerEvent);
         modEventBus.addListener(this::addItemsToCreativeTab);
-        ((ForgeRegistry<Block>)ForgeRegistries.BLOCKS).freeze();
         JsonObject config = getConfig();
         if (!config.has("maxCompressedTiers")){
             fatal("Missing maxCompressedTiers key in the compressed json");
