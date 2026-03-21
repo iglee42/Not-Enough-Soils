@@ -58,7 +58,7 @@ public class ModuleLoader {
         LORE(true)
         ;
 
-        private boolean disabled;
+        private final boolean disabled;
 
         Modules() {
             this(false);

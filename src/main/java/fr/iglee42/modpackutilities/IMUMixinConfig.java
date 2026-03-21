@@ -73,8 +73,7 @@ public class IMUMixinConfig implements IMixinConfigPlugin{
             if (!requiresModsOk) return false;
 
             AtomicBoolean canBeLoaded = new AtomicBoolean(true);
-            Optional<Module> module = IgleeModpackUtilities.MODULES.stream().filter(m->mixinClassName.contains(m.getName())).findAny();
-            module.ifPresent(m-> canBeLoaded.set(m.isLoaded()));
+            canBeLoaded.set(ModuleLoader.LOADED_MODULES.stream().anyMatch(m->mixinClassName.contains(m.name().toLowerCase())));
             return canBeLoaded.get();
         } catch (Exception ignored) {
             return false;
