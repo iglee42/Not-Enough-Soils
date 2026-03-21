@@ -55,7 +55,7 @@ public class ModelManagerMixin {
                                 String out = location.getNamespace() + "/" + location.getPath() + "/"+finalI+".png";
                                 String layer = compressed$getLayerTexture(module, finalI);
                                 try {
-                                    TextureLayerApplier.applyLayer(resources::get,location, ResourceLocation.parse(layer), module.getFolderFor("textures/block", true).resolve(out));
+                                    TextureLayerApplier.applyLayer(resources::get,location, ResourceLocation.tryParse(layer), module.getFolderFor("textures/block", true).resolve(out));
                                 } catch (IllegalArgumentException ex){
                                     module.warn("Failed to apply layer to {}, it will appear as a bugged texture: {}", location,ex.getMessage());
                                 } catch (Exception ex) {

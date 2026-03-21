@@ -2,19 +2,17 @@ package fr.iglee42.modpackutilities.modules.compressed;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import com.mojang.datafixers.util.Either;
 import com.mojang.logging.LogUtils;
 import fr.iglee42.igleelib.api.utils.ModsUtils;
 import fr.iglee42.modpackutilities.resourcepack.generation.TextureKey;
 import fr.iglee42.modpackutilities.utils.LangFormatter;
 import fr.iglee42.modpackutilities.utils.Module;
-import fr.iglee42.modpackutilities.utils.TextureLayerApplier;
+import fr.iglee42.modpackutilities.utils.ModuleLoader;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -27,7 +25,6 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParamSet;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
 import net.neoforged.api.distmarker.Dist;
@@ -36,7 +33,6 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -53,8 +49,8 @@ public class CompressedModule extends Module {
     private String langExpression = "Compressed {{type}}{{?tier>1: x{{tier}}}}";
     private Either<String,Map<Integer,String>> layers = Either.left(DEFAULT_LAYER);
     private boolean generateRecipes = true;
-    public CompressedModule() {
-        super("compressed", true);
+    public CompressedModule(ModuleLoader.Modules type, String name) {
+        super(type,name, true);
         COMPRESSED = new ArrayList<>();
     }
 

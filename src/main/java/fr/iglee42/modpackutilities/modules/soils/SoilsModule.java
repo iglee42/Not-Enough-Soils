@@ -6,6 +6,7 @@ import com.google.gson.JsonParseException;
 import com.mojang.logging.LogUtils;
 import fr.iglee42.modpackutilities.IgleeModpackUtilities;
 import fr.iglee42.modpackutilities.utils.Module;
+import fr.iglee42.modpackutilities.utils.ModuleLoader;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -28,9 +29,9 @@ import java.util.function.Consumer;
 public class SoilsModule extends Module {
     public HashMap<Block, List<Block>> SOILS;
 
-    public SoilsModule() {
-        super("soils", true);
-        SOILS = new HashMap<>();
+    public SoilsModule(ModuleLoader.Modules type, String name) {
+        super(type, name, true);
+        this.SOILS = new HashMap<>();
     }
 
     @Override

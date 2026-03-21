@@ -45,13 +45,14 @@ import java.util.function.Consumer;
 public abstract class Module {
 
     private final String name;
-    private boolean isLoaded = false;
+    private final ModuleLoader.Modules type;
     private File configFile;
     private final Map<String,String> langs;
     private final Map<ResourceKey<?>, List<String>> tags;
     private final Logger logger;
 
-    protected Module(String name, boolean hasConfig) {
+    protected Module(ModuleLoader.Modules type, String name, boolean hasConfig) {
+        this.type = type;
         this.name = name;
         if (hasConfig) {
             configFile = new File(FMLPaths.CONFIGDIR.get().toFile(), IgleeModpackUtilities.MODID+"/"+name+".json");
@@ -64,10 +65,6 @@ public abstract class Module {
 
     public ResourceLocation rl(String path) {
         return ResourceLocation.fromNamespaceAndPath(getName(),path);
-    }
-
-    public void setLoaded(boolean loaded) {
-        isLoaded = loaded;
     }
 
     public void init(IEventBus modEventBus, IEventBus forgeEventBus) throws Exception{
@@ -84,7 +81,7 @@ public abstract class Module {
     }
 
     public boolean isLoaded() {
-        return isLoaded;
+        return IgleeModpackUtilities.isModuleLoaded(getType());
     }
 
     public boolean hasConfig(){
@@ -285,17 +282,23 @@ public abstract class Module {
         logger.log(level,message,params);
     }
 
-    public void error(String message, Object... params){
-        log(Level.ERROR,message,params);
+    public void debug(String message, Object... params){
+        log(Level.DEBUG,message,params);
+    }
+    public void info(String message, Object... params){
+        log(Level.INFO,message,params);
     }
     public void warn(String message, Object... params){
         log(Level.WARN,message,params);
     }
-    public void info(String message, Object... params){
-        log(Level.INFO,message,params);
+    public void error(String message, Object... params){
+        log(Level.ERROR,message,params);
     }
     public void fatal(String message, Object... params){
         log(Level.FATAL,message,params);
     }
 
+    public ModuleLoader.Modules getType() {
+        return type;
+    }
 }
