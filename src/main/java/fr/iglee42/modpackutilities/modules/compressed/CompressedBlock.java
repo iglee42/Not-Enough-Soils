@@ -188,6 +188,16 @@ public class CompressedBlock {
                     module.error("class in the compressed object for {} isn't a string", getBlock());
                 }
             }
+            if (json.has("falling")){
+                if (json.get("falling").isJsonPrimitive() && json.getAsJsonPrimitive("falling").isBoolean()) {
+                    boolean falling = json.getAsJsonPrimitive("falling").getAsBoolean();
+                    if (falling) {
+                        this.customBlockClass = SimpleCompressedFallingBlock.class;
+                    }
+                } else {
+                    module.error("falling in the compressed object for {} isn't a boolean", getBlock());
+                }
+            }
             if (json.has("pushReaction")) {
                 if (json.get("pushReaction").isJsonPrimitive() && json.getAsJsonPrimitive("pushReaction").isString()) {
                     try {
