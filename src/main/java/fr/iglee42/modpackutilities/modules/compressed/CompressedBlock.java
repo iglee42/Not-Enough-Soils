@@ -7,6 +7,7 @@ import fr.iglee42.modpackutilities.IgleeModpackUtilities;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.PushReaction;
@@ -182,6 +183,16 @@ public class CompressedBlock {
                     }
                 } else {
                     module.error("class in the compressed object for {} isn't a string", getBlock());
+                }
+            }
+            if (json.has("falling")){
+                if (json.get("falling").isJsonPrimitive() && json.getAsJsonPrimitive("falling").isBoolean()) {
+                    boolean falling = json.getAsJsonPrimitive("falling").getAsBoolean();
+                    if (falling) {
+                        this.customBlockClass = FallingBlock.class;
+                    }
+                } else {
+                    module.error("falling in the compressed object for {} isn't a boolean", getBlock());
                 }
             }
             if (json.has("pushReaction")) {

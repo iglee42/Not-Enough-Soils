@@ -43,19 +43,18 @@ public class IgleeModpackUtilities {
     }
 
     private static void initModules(IEventBus modEventBus) {
-        MODULES = new ArrayList<>();
+        MODULES = Collections.synchronizedList(new ArrayList<>());
         ModuleLoader.LOADED_MODULES.forEach(type->{
             Module m = switch (type){
                 case LORE -> new LoreModule(type,"lore");
                 case COMPRESSED -> new CompressedModule(type,"compressed");
                 case SOILS -> new SoilsModule(type,"soils");
             };
+            MODULES.add(m);
             try {
                 m.init(modEventBus, MinecraftForge.EVENT_BUS);
             } catch (Exception e){
                 m.fatal("Failed to load {} module : {}",m.getName(),e);
-            } finally {
-                MODULES.add(m);
             }
         });
     }
