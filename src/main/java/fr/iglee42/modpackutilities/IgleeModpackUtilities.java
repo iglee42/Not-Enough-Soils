@@ -46,6 +46,7 @@ public class IgleeModpackUtilities {
             Module m = switch (type){
                 case COMPRESSED -> new CompressedModule(type,"compressed");
                 case SOILS -> new SoilsModule(type,"soils");
+                case LORE -> null; // TODO Change when adding lore module;
             };
             try {
                 m.init(modEventBus, NeoForge.EVENT_BUS);
