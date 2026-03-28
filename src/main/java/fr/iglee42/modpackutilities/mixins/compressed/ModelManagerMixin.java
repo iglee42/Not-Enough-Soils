@@ -34,7 +34,7 @@ public class ModelManagerMixin {
     @Inject(method = "reload",at=  @At("HEAD"))
     private void compressed$createNewTextures(PreparableReloadListener.PreparationBarrier p_249079_, ResourceManager resourceManager, ProfilerFiller p_250336_, ProfilerFiller p_252324_, Executor p_250550_, Executor p_249221_, CallbackInfoReturnable<CompletableFuture<Void>> cir){
         Map<ResourceLocation, Resource> resources = new HashMap<>();
-        resourceManager.listResources("textures", path -> path.getPath().endsWith(".png")).entrySet().stream().filter(e->e.getValue()!= null).map(r->{
+        resourceManager.listResources("textures", path -> path.getPath().endsWith(".png")|| path.getPath().endsWith(".mcmeta")).entrySet().stream().filter(e->e.getValue()!= null).map(r->{
             String path = r.getKey().getPath().replace("textures/","").replace(".png","");
             return new AbstractMap.SimpleEntry<>(r.getKey().withPath(path),r.getValue());
         }).forEach(e->resources.put(e.getKey(),e.getValue()));

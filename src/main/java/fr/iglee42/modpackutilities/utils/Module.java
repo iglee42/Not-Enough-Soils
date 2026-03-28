@@ -118,17 +118,29 @@ public abstract class Module {
     }
 
     protected void blockstate(String name,String model){
+        JsonObject variants = new JsonObject();
+        JsonObject modelJson = new JsonObject();
+        modelJson.addProperty("model",model);
+        variants.add("empty",modelJson);
+        blockstate(name,variants);
+    }
+
+    protected void blockstate(String name,JsonObject variants){
         try {
             File file = new File(getFolderFor("blockstates",true).toFile(), name+".json");
             file.getParentFile().mkdirs();
+            String jsonBase = "{\n" +
+                    "  \"variants\": {\n";
+            StringBuilder builder = new StringBuilder(jsonBase);
+            for (int i = 0; i < variants.keySet().size(); i++) {
+                JsonElement e = variants.get(variants.keySet().stream().toList().get(i));
+                builder.append("   \"").append(variants.keySet().stream().toList().get(i).equals("empty") ? "" : variants.keySet().stream().toList().get(i)).append("\": ");
+                builder.append(new Gson().toJson(e));
+                builder.append(i < variants.keySet().size() - 1 ? ",":"").append("\n");
+            }
+            builder.append("  }\n").append("}");
             FileWriter writer = new FileWriter(file);
-            writer.write("{\n" +
-                    "  \"variants\": {\n" +
-                    "    \"\": {\n" +
-                    "      \"model\": \""+model+"\"\n" +
-                    "    }\n" +
-                    "  }\n" +
-                    "}");
+            writer.write(builder.toString());
             writer.close();
         } catch (Exception exception){
             LogUtils.getLogger().error("An error was detected when generating blockstate {} ",name,exception);

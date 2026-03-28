@@ -15,6 +15,7 @@
     "soils.mystical.CruxRecipeMixin"
   ],
   "client": [
+    "compressed.AnimationMetadataSectionAccessor",
     "compressed.ModelManagerMixin"
   ],
   "injectors": {
