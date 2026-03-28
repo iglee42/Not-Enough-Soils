@@ -80,7 +80,11 @@ public class CompressedModule extends Module {
                 warn("A compressed block already exist for the \"{}\" block",block);
                 return;
             }
-            CompressedBlock cBlock = new CompressedBlock(block);
+            String prefix = "";
+            if (COMPRESSED.stream().anyMatch(c->c.getBlock().getPath().equals(block.getPath()))){
+                prefix = block.getNamespace();
+            }
+            CompressedBlock cBlock = new CompressedBlock(block,prefix);
             if (e.getValue().isJsonPrimitive() && e.getValue().getAsJsonPrimitive().isString()){
                 cBlock.setSingleTexture(ResourceLocation.parse(e.getValue().getAsString()));
             } else if (e.getValue().isJsonObject()){
@@ -184,7 +188,7 @@ public class CompressedModule extends Module {
                         if (c.getSoundType() != null){
                             props = props.sound(c.getSoundType());
                         }
-                        Block block = Registry.register(BuiltInRegistries.BLOCK,ResourceLocation.fromNamespaceAndPath(getName(),"compressed_" + c.getBlock().getPath() + "_"+finalI),constructor.newInstance(props));
+                        Block block = Registry.register(BuiltInRegistries.BLOCK,ResourceLocation.fromNamespaceAndPath(getName(),(!c.getPrefix().isBlank() ? c.getPrefix() +"_" : "") +"compressed_" + c.getBlock().getPath() + "_"+finalI),constructor.newInstance(props));
                         c.setBlockForTier(finalI, block);
                     } catch (NoSuchMethodException  e) {
                         warn("The block class for {} doesn't have a valid constructor",c.getBlock(),e);
@@ -198,7 +202,7 @@ public class CompressedModule extends Module {
             for (int i = 1; i <= maxCompressedTiers; i++){
                 int finalI = i;
                 COMPRESSED.stream().filter(c->c.getItemForTier(finalI) == null && c.getBlockForTier(finalI) != null).forEach(c->{
-                    BlockItem it = Registry.register(BuiltInRegistries.ITEM,ResourceLocation.fromNamespaceAndPath(getName(),"compressed_" + c.getBlock().getPath() + "_"+finalI),new BlockItem(c.getBlockForTier(finalI), new Item.Properties()));
+                    BlockItem it = Registry.register(BuiltInRegistries.ITEM,ResourceLocation.fromNamespaceAndPath(getName(),(!c.getPrefix().isBlank() ? c.getPrefix() +"_" : "") +"compressed_" + c.getBlock().getPath() + "_"+finalI),new BlockItem(c.getBlockForTier(finalI), new Item.Properties()));
                     c.setItemForTier(finalI, it);
                 });
             }
@@ -237,8 +241,9 @@ public class CompressedModule extends Module {
             int finalI = i;
 
             COMPRESSED.stream().filter(Predicate.not(CompressedBlock::isDisabled)).forEach(c->{
-                blockstate("compressed_" + c.getBlock().getPath() + "_"+finalI,getName() + ":block/"+"compressed_" + c.getBlock().getPath() + "_"+finalI);
-                model("block","compressed_" + c.getBlock().getPath() + "_"+finalI,c.isSingleTexture() ? "block/cube_all": c.getCustomParent().toString(),c.getTextures().keySet().stream().map(
+                String prefix = !c.getPrefix().isBlank() ? c.getPrefix() + "_" : "";
+                blockstate(prefix+"compressed_" + c.getBlock().getPath() + "_"+finalI,c.getRotation().getVariants(getName() + ":block/"+prefix+"compressed_" + c.getBlock().getPath() + "_"+finalI));
+                model("block",prefix+"compressed_" + c.getBlock().getPath() + "_"+finalI,c.isSingleTexture() ? "block/cube_all": c.getCustomParent().toString(),c.getTextures().keySet().stream().map(
                         k->{
                             ResourceLocation location = getTexture(c, k);
                             if (location != null){
@@ -248,10 +253,10 @@ public class CompressedModule extends Module {
                             return null;
                         }
                 ).filter(Objects::nonNull).toArray(TextureKey[]::new),c.getRenderType().name().toLowerCase());
-                model("item","compressed_" + c.getBlock().getPath() + "_"+finalI,getName() + ":block/"+"compressed_" + c.getBlock().getPath() + "_"+finalI,new TextureKey[]{},"");
+                model("item",prefix+"compressed_" + c.getBlock().getPath() + "_"+finalI,getName() + ":block/"+prefix+"compressed_" + c.getBlock().getPath() + "_"+finalI,new TextureKey[]{},"");
                 if (c.getBlockForTier(finalI) != null){
                     Map<String, Object> ctx = Map.of(
-                            "type", ModsUtils.getUpperName(c.getBlock().getPath(),"_"),
+                            "type", c.hasDisplayName() ? c.getDisplayName() : ModsUtils.getUpperName(c.getBlock().getPath(),"_"),
                             "tier", finalI
                     );
 
@@ -269,51 +274,51 @@ public class CompressedModule extends Module {
                         shaped.add("pattern", fullPattern);
                         JsonObject keys = new JsonObject();
                         JsonObject key = new JsonObject();
-                        key.addProperty("item", (finalI > 1 ? getName()+":compressed_" + c.getBlock().getPath() + "_" + (finalI - 1) : c.getBlock()).toString());
+                        key.addProperty("item", (finalI > 1 ? getName()+":"+prefix+"compressed_" + c.getBlock().getPath() + "_" + (finalI - 1) : c.getBlock()).toString());
                         keys.add("#", key);
                         shaped.add("key", keys);
                         JsonObject result = new JsonObject();
-                        result.addProperty("id",getName() + ":compressed_" + c.getBlock().getPath() + "_" + finalI);
+                        result.addProperty("id",getName() + ":"+prefix+"compressed_" + c.getBlock().getPath() + "_" + finalI);
                         shaped.add("result",result);
-                        recipe("compressed_" + c.getBlock().getPath() + "_" + finalI, "minecraft:crafting_shaped", shaped);
+                        recipe(prefix + "compressed_" + c.getBlock().getPath() + "_" + finalI, "minecraft:crafting_shaped", shaped);
                     }
                     {
                         JsonObject shapeless = new JsonObject();
                         JsonArray ingredients = new JsonArray();
                         JsonObject key = new JsonObject();
-                        key.addProperty("item", (getName()+":compressed_" + c.getBlock().getPath() + "_" + finalI));
+                        key.addProperty("item", (getName()+":"+prefix+"compressed_" + c.getBlock().getPath() + "_" + finalI));
                         ingredients.add(key);
                         shapeless.add("ingredients", ingredients);
                         JsonObject result = new JsonObject();
-                        result.addProperty("id", (finalI > 1 ? getName() + ":compressed_" + c.getBlock().getPath() + "_" + (finalI - 1) : c.getBlock()).toString());
+                        result.addProperty("id", (finalI > 1 ? getName() + ":"+prefix+"compressed_" + c.getBlock().getPath() + "_" + (finalI - 1) : c.getBlock()).toString());
                         result.addProperty("count", 9);
                         shapeless.add("result",result);
-                        recipe("compressed_" + c.getBlock().getPath() + "_" + finalI+"_decompress", "minecraft:crafting_shapeless", shapeless);
+                        recipe(prefix + "compressed_" + c.getBlock().getPath() + "_" + finalI+"_decompress", "minecraft:crafting_shapeless", shapeless);
                     }
                 }
-                tag(BuiltInRegistries.BLOCK,rl("compressed/"+c.getBlock().getPath()),"#"+getName()+":compressed/" + c.getBlock().getPath() + "/" + finalI);
-                tag(BuiltInRegistries.BLOCK,rl("compressed/"+c.getBlock().getPath()+"/"+finalI),(getName()+":compressed_" + c.getBlock().getPath() + "_" + finalI));
-                tag(BuiltInRegistries.BLOCK,rl("compressed"),"#"+getName()+":compressed/"+c.getBlock().getPath());
+                tag(BuiltInRegistries.BLOCK,rl("compressed/"+prefix+c.getBlock().getPath()),"#"+getName()+":compressed/" + prefix + c.getBlock().getPath() + "/" + finalI);
+                tag(BuiltInRegistries.BLOCK,rl("compressed/"+prefix+c.getBlock().getPath()+"/"+finalI),(getName()+":"+prefix+"compressed_" + c.getBlock().getPath() + "_" + finalI));
+                tag(BuiltInRegistries.BLOCK,rl("compressed"),"#"+getName()+":compressed/"+prefix+c.getBlock().getPath());
 
-                tag(BuiltInRegistries.ITEM,rl("compressed/"+c.getBlock().getPath()),"#"+getName()+":compressed/" + c.getBlock().getPath() + "/" + finalI);
-                tag(BuiltInRegistries.ITEM,rl("compressed/"+c.getBlock().getPath()+"/"+finalI),(getName()+":compressed_" + c.getBlock().getPath() + "_" + finalI));
-                tag(BuiltInRegistries.ITEM,rl("compressed"),"#"+getName()+":compressed/"+c.getBlock().getPath());
+                tag(BuiltInRegistries.ITEM,rl("compressed/"+prefix+c.getBlock().getPath()),"#"+getName()+":compressed/" +prefix+ c.getBlock().getPath() + "/" + finalI);
+                tag(BuiltInRegistries.ITEM,rl("compressed/"+prefix+c.getBlock().getPath()+"/"+finalI),(getName()+":"+prefix+"compressed_" + c.getBlock().getPath() + "_" + finalI));
+                tag(BuiltInRegistries.ITEM,rl("compressed"),"#"+getName()+":compressed/"+prefix+c.getBlock().getPath());
 
                 c.getBlockTags().forEach(rs->{
-                    tag(BuiltInRegistries.BLOCK,rs,(getName()+":compressed_" + c.getBlock().getPath() + "_" + finalI));
+                    tag(BuiltInRegistries.BLOCK,rs,(getName()+":"+prefix+"compressed_" + c.getBlock().getPath() + "_" + finalI));
                 });
                 c.getItemTags().forEach(rs->{
-                    tag(BuiltInRegistries.ITEM,rs,(getName()+":compressed_" + c.getBlock().getPath() + "_" + finalI));
+                    tag(BuiltInRegistries.ITEM,rs,(getName()+":"+prefix+"compressed_" + c.getBlock().getPath() + "_" + finalI));
                 });
 
                 LootTable table = LootTable.lootTable().setParamSet(LootContextParamSets.BLOCK)
-                        .setRandomSequence(rl("compressed_" + c.getBlock().getPath() + "_" + finalI)).withPool(
+                        .setRandomSequence(rl(prefix+"compressed_" + c.getBlock().getPath() + "_" + finalI)).withPool(
                                 LootPool.lootPool()
                                         .add(LootItem.lootTableItem(c.getItemForTier(finalI)))
                                         .when(ExplosionCondition.survivesExplosion()))
                         .build();
 
-                lootTable("blocks","compressed_" + c.getBlock().getPath() + "_" + finalI,table);
+                lootTable("blocks",prefix+"compressed_" + c.getBlock().getPath() + "_" + finalI,table);
             });
         }
     }
