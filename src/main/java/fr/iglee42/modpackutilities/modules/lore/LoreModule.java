@@ -7,6 +7,7 @@ import fr.iglee42.modpackutilities.compat.ftb.lib.FTBLibraryHelper;
 import fr.iglee42.modpackutilities.compat.kubejs.KubeJSHelper;
 import fr.iglee42.modpackutilities.modules.lore.client.LoreEntityBlockRenderer;
 import fr.iglee42.modpackutilities.modules.lore.client.LoreEntityRenderer;
+import fr.iglee42.modpackutilities.modules.lore.network.ChangeLoreFilePacket;
 import fr.iglee42.modpackutilities.modules.lore.network.SyncLoreFilesPacket;
 import fr.iglee42.modpackutilities.modules.lore.network.SyncLoreProgressPacket;
 import fr.iglee42.modpackutilities.modules.lore.network.UnlockLoreEntryPacket;
@@ -29,11 +30,13 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -87,6 +90,7 @@ public class LoreModule extends Module {
         modEventBus.addListener(this::registerRegistries);
         modEventBus.addListener(this::register);
         if (FMLEnvironment.dist.isClient()) modEventBus.addListener(this::registerRender);
+        if (FMLEnvironment.dist.isClient()) modEventBus.addListener(this::addToCreativeTab);
         LoreRegistries.register(modEventBus);
         forgeEventBus.addListener(this::registerReloadListener);
         forgeEventBus.addListener(this::playerLogin);
@@ -128,6 +132,11 @@ public class LoreModule extends Module {
             PacketDistributor.sendToPlayer(sp, new SyncLoreFilesPacket(files.values().stream().toList()));
             PacketDistributor.sendToPlayer(sp, new SyncLoreProgressPacket(LoreProgressManager.get().getProgress(sp)));
         }
+    }
+
+    private void addToCreativeTab(BuildCreativeModeTabContentsEvent event){
+        if (event.getTabKey().equals(CreativeModeTabs.OP_BLOCKS) && event.hasPermissions())
+            event.accept(LoreRegistries.LORE_BLOCK_ITEM.get());
     }
 
 

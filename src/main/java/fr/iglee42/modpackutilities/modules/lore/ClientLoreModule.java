@@ -5,6 +5,7 @@ import fr.iglee42.modpackutilities.modules.lore.client.LoreGui;
 import fr.iglee42.modpackutilities.modules.lore.progress.IProgressHandler;
 import fr.iglee42.modpackutilities.modules.lore.progress.LoreProgress;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
@@ -61,8 +62,8 @@ public class ClientLoreModule implements IProgressHandler {
             gui.resize(Minecraft.getInstance(),gui.width,gui.height);
     }
 
-    public void openLoreGui(ResourceLocation fileId){
+    public void openLoreGui(ResourceLocation fileId, BlockPos bePos){
         Optional<LoreFile> file = getLoreFile(fileId);
-        file.ifPresent(f-> Minecraft.getInstance().setScreen(new LoreGui(f)));
+        Minecraft.getInstance().setScreen(new LoreGui(file.orElse(null),bePos));
     }
 }
