@@ -12,11 +12,12 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public record UnlockLoreEntryPacket(ResourceLocation fileId,ResourceLocation entryId) implements CustomPacketPayload {
+public record UnlockLoreEntryPacket(ResourceLocation fileId,ResourceLocation entryId, boolean force) implements CustomPacketPayload {
 
     public static final StreamCodec<RegistryFriendlyByteBuf,UnlockLoreEntryPacket> STREAM_CODEC = StreamCodec.composite(
             ResourceLocation.STREAM_CODEC,UnlockLoreEntryPacket::fileId,
             ResourceLocation.STREAM_CODEC,UnlockLoreEntryPacket::entryId,
+            ByteBufCodecs.BOOL,UnlockLoreEntryPacket::force,
             UnlockLoreEntryPacket::new
     );
 
@@ -39,6 +40,9 @@ public record UnlockLoreEntryPacket(ResourceLocation fileId,ResourceLocation ent
             if (file == null) {
                 return;
             }
+
+            if (file.getEntry(payload.entryId()).isEmpty()) return;
+            if (payload.force() && file.getEntry(payload.entryId()).get().getPreviousEntry().isPresent()) return;
 
             LoreProgressManager manager = LoreProgressManager.get();
             manager.tryUnlockEntry(player,file,payload.entryId());

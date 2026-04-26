@@ -1,5 +1,6 @@
 package fr.iglee42.modpackutilities.modules.lore.block.entity;
 
+import fr.iglee42.modpackutilities.modules.lore.LoreFile;
 import fr.iglee42.modpackutilities.modules.lore.LoreRegistries;
 import fr.iglee42.modpackutilities.modules.lore.entity.LoreEntity;
 import net.minecraft.Util;
@@ -87,10 +88,13 @@ public class LoreEntityBlockEntity extends BlockEntity {
     public void setRemoved() {
         if (!entityId.equals(Util.NIL_UUID) && level instanceof ServerLevel slevel){
             Entity entity = slevel.getEntity(entityId);
-            if (entity != null) entity.discard();
+            if (entity != null) entity.remove(Entity.RemovalReason.DISCARDED);
         }
     }
 
+    public void setFileId(@Nullable ResourceLocation fileId) {
+        this.fileId = fileId;
+    }
 
     public @Nullable ResourceLocation getFileId() {
         return fileId;
@@ -112,7 +116,7 @@ public class LoreEntityBlockEntity extends BlockEntity {
             e.setBEPos(getBlockPos());
             e.setPos(Vec3.atCenterOf(getBlockPos()).add(0,getYOffset(),0));
         }
-        if (entity == null && getFileId() != null){
+        if (entity == null && isCurrentFileValid()){
             LoreEntity newEntity = new LoreEntity(LoreRegistries.ENTITY.get(), level);
             newEntity.setPos(Vec3.atCenterOf(getBlockPos()).add(0,getYOffset(),0));
             newEntity.setFileId(getFileId());
@@ -124,4 +128,7 @@ public class LoreEntityBlockEntity extends BlockEntity {
         }
     }
 
+    public boolean isCurrentFileValid(){
+        return getFileId() != null && LoreFile.getLoreFile(getFileId()).isPresent();
+    }
 }

@@ -1,0 +1,114 @@
+{
+	"id": "test:test_lore",
+	"entries":[
+		{
+			"id": "test:test_lore_0",
+			"lines": [
+				"text.lore.lore_0.line_0",
+				"text.lore.lore_0.line_1",
+				"text.lore.lore_0.line_2"
+			],
+			"requirements":[],
+			"voice_location": "minecraft:entity.experience_orb.pickup"
+		},
+		{
+			"id": "test:test_lore_1",
+			"lines": [
+				"text.lore.lore_1.line_0",
+				"text.lore.lore_1.line_1",
+				"text.lore.lore_1.line_2"
+			],
+			"requirements":[{
+				"type": "lore:item",
+				"item": "minecraft:diamond",
+				"count": 64
+			}],
+			"voice_location": "lore:test_lore_1"
+		},
+		{
+			"id": "test:test_lore_2",
+			"lines": [
+				"text.lore.lore_1.line_0",
+				"text.lore.lore_1.line_1",
+				"text.lore.lore_1.line_2"
+			],
+			"requirements":[{
+				"type": "lore:item",
+				"item": "minecraft:diamond",
+				"count": 64
+			}],
+			"voice_location": "lore:test_lore_1"
+		},
+		{
+			"id": "test:test_lore_3",
+			"lines": [
+				"text.lore.lore_1.line_0",
+				"text.lore.lore_1.line_1",
+				"text.lore.lore_1.line_2"
+			],
+			"requirements":[{
+				"type": "lore:item",
+				"item": "minecraft:diamond",
+				"count": 64
+			}],
+			"voice_location": "lore:test_lore_1"
+		},
+		{
+			"id": "test:test_lore_4",
+			"lines": [
+				"text.lore.lore_1.line_0",
+				"text.lore.lore_1.line_1",
+				"text.lore.lore_1.line_2"
+			],
+			"requirements":[{
+				"type": "lore:item",
+				"item": "minecraft:diamond",
+				"count": 64
+			}],
+			"voice_location": "lore:test_lore_1"
+		},
+		{
+			"id": "test:test_lore_5",
+			"lines": [
+				"text.lore.lore_1.line_0",
+				"text.lore.lore_1.line_1",
+				"text.lore.lore_1.line_2"
+			],
+			"requirements":[{
+				"type": "lore:item",
+				"item": "minecraft:diamond",
+				"count": 64
+			}],
+			"voice_location": "lore:test_lore_1"
+		},
+		{
+			"id": "test:test_lore_6",
+			"lines": [
+				"text.lore.lore_1.line_0",
+				"text.lore.lore_1.line_1",
+				"text.lore.lore_1.line_2"
+			],
+			"requirements":[{
+				"type": "lore:item",
+				"item": "minecraft:diamond",
+				"count": 64
+			}],
+			"voice_location": "lore:test_lore_1"
+		},
+		{
+			"id": "test:test_lore_7",
+			"lines": [
+				"text.lore.lore_1.line_0",
+				"text.lore.lore_1.line_1",
+				"text.lore.lore_1.line_2"
+			],
+			"requirements":[{
+				"type": "lore:item",
+				"item": "minecraft:diamond",
+				"count": 64
+			}],
+			"voice_location": "lore:test_lore_1"
+		}
+	],
+	"finished": "text.lore.finished"
+}

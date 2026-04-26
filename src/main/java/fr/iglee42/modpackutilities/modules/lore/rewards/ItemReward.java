@@ -8,8 +8,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -20,7 +19,7 @@ public record ItemReward(Item item, int count) implements LoreReward {
     public static final MapCodec<ItemReward> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(
                     BuiltInRegistries.ITEM.byNameCodec().fieldOf("item").forGetter(r -> r.item),
-                    Codec.INT.fieldOf("count").forGetter(r -> r.count)
+                    ExtraCodecs.POSITIVE_INT.optionalFieldOf("count",1).forGetter(r -> r.count)
             ).apply(instance, ItemReward::new)
     );
 
@@ -44,6 +43,6 @@ public record ItemReward(Item item, int count) implements LoreReward {
 
     @Override
     public @NotNull Component getTitle() {
-        return Component.literal(count() + "x " + item.getDescription().getString());
+        return Component.translatable("lore.reward.item",count(), item.getName(item.getDefaultInstance()));
     }
 }

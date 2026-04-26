@@ -4,11 +4,11 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import fr.iglee42.modpackutilities.modules.lore.LoreModule;
+import fr.iglee42.modpackutilities.utils.ModuleLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,7 +16,7 @@ public record XPReward(int amount, boolean levels) implements LoreReward {
 
     public static final MapCodec<XPReward> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(
-                    Codec.INT.fieldOf("amount").forGetter(r -> r.amount),
+                    ExtraCodecs.POSITIVE_INT.fieldOf("amount").forGetter(r -> r.amount),
                     Codec.BOOL.optionalFieldOf("levels",false).forGetter(r -> r.levels)
             ).apply(instance, XPReward::new)
     );
@@ -41,6 +41,6 @@ public record XPReward(int amount, boolean levels) implements LoreReward {
 
     @Override
     public @NotNull Component getTitle() {
-        return Component.literal(amount() + " experience " + (levels ? "levels": "points"));
+        return Component.translatable("lore.reward.xp"+(levels? "_levels" :""),amount());
     }
 }

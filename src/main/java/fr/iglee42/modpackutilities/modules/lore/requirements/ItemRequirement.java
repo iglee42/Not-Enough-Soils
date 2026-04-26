@@ -44,6 +44,6 @@ public record ItemRequirement(Item item, int count) implements LoreRequirement {
 
     @Override
     public @NotNull Component getTitle() {
-        return Component.literal(count() + "x " + item.getDescription().getString());
+        return Component.translatable("lore.requirements.item",count(), item.getName(item.getDefaultInstance()));
     }
 }

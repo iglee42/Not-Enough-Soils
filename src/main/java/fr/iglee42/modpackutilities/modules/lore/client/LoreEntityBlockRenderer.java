@@ -35,9 +35,8 @@ public class LoreEntityBlockRenderer implements BlockEntityRenderer<LoreEntityBl
     }
 
     private <R extends Entity> void render(LoreEntityBlockEntity blockEntity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay){
-        if (blockEntity.getFileId() == null) {
-            return;
-        }
+        if (blockEntity.getFileId() == null) return;
+        if (ClientLoreModule.getInstance().getLoreFile(blockEntity.getFileId()).isEmpty()) return;
 
         AtomicBoolean hasFinishedFile = new AtomicBoolean(false);
         ClientLoreModule.getInstance().getLoreFile(blockEntity.getFileId()).ifPresent(file -> {

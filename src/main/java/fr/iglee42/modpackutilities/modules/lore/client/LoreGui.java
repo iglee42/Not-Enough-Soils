@@ -1,11 +1,13 @@
 package fr.iglee42.modpackutilities.modules.lore.client;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import fr.iglee42.igleelib.api.utils.MouseUtil;
 import fr.iglee42.modpackutilities.IgleeModpackUtilities;
 import fr.iglee42.modpackutilities.client.widgets.IconButton;
 import fr.iglee42.modpackutilities.modules.lore.ClientLoreModule;
 import fr.iglee42.modpackutilities.modules.lore.LoreEntry;
 import fr.iglee42.modpackutilities.modules.lore.LoreFile;
+import fr.iglee42.modpackutilities.modules.lore.LoreModule;
 import fr.iglee42.modpackutilities.modules.lore.network.ChangeLoreFilePacket;
 import fr.iglee42.modpackutilities.modules.lore.network.UnlockLoreEntryPacket;
 import fr.iglee42.modpackutilities.modules.lore.progress.LoreProgress;
@@ -14,6 +16,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.LockIconButton;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.BlockPos;
@@ -47,7 +50,6 @@ public class LoreGui extends Screen {
     private static final int GUI_WIDTH_REDUCTION = 100;
     private static final int GUI_HEIGHT_REDUCTION = 25;
 
-    // Textures (change only these paths/sizes when you add your assets)
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(IgleeModpackUtilities.MODID, "textures/gui/lore/background.png");
 
 

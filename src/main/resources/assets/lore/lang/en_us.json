@@ -1,0 +1,15 @@
+{
+  "lore.reward.xp_levels": "%s experience level(s)",
+  "lore.reward.xp": "%s experience point(s)",
+  "lore.reward.item": "%sx %s",
+  "lore.reward.stage": "Obtain stage : %s",
+  "lore.reward.quest_task": "Complete Quest Task : %s",
+  "lore.reward.unknown_quest_task": "Complete Unknown Quest Task : %s",
+
+  "lore.requirements.unknown_quest_object": "Complete Unknown Quest Object : %s",
+  "lore.requirements.quest_object": "Complete %s : %s",
+  "lore.requirements.item": "%sx %s",
+  "lore.requirements.stage": "Obtain Stage : %s",
+  "lore.gui.settings": "Settings",
+  "lore.gui.selected": "Selected"
+}

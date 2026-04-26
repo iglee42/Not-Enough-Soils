@@ -46,7 +46,7 @@ public record CompleteQuestTaskReward(String taskId) implements LoreReward {
     public @NotNull Component getTitle() {
         BaseQuestFile file = FTBQuestsAPI.api().getQuestFile(ServerLifecycleHooks.getCurrentServer() == null);
         Task task = file.getTask(QuestObjectBase.parseCodeString(taskId()));
-        if (task == null) return Component.literal("Complete unknown task " + taskId());
-        return Component.literal("Complete task : " + task.getTitle().getString());
+        if (task == null) return Component.translatable("lore.reward.unknown_quest_task", taskId());
+        return Component.translatable("lore.reward.quest_task", task.getTitle().getString());
     }
 }
