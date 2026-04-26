@@ -88,6 +88,20 @@ repositories {
     maven {
         url 'https://maven.iglee.fr/releases'
     }
+
+    maven {
+        url = "https://maven.ftb.dev/releases"
+        content {
+            includeGroup("dev.ftb.mods")
+        }
+    }
+
+    maven {
+        url = "https://maven.architectury.dev"
+        content {
+            includeGroup("dev.architectury")
+        }
+    }
 }
 
 dependencies {
@@ -102,6 +116,8 @@ dependencies {
     implementation "com.blakebr0.mysticalagriculture:MysticalAgriculture:${minecraft_version}-${mystical_version}"
     implementation "com.blakebr0.mysticalcustomization:MysticalCustomization:${minecraft_version}-${mscustomization_version}"
 
+    compileOnly("dev.ftb.mods:ftb-library-neoforge:${ftb_library_version}") {transitive = false}
+    compileOnly("dev.ftb.mods:ftb-teams-neoforge:${ftb_teams_version}") {transitive = false}
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
