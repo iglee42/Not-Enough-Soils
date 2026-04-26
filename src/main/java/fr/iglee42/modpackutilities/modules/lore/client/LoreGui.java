@@ -29,6 +29,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.network.PacketDistributor;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,7 +62,6 @@ public class LoreGui extends Screen {
 
     private Button doneButton;
     private Button unlockButton;
-    private IconButton settingsButton;
     private double scrollAmount;
     private int contentHeight;
     private int totalScrollableHeight;
@@ -69,12 +69,15 @@ public class LoreGui extends Screen {
     private boolean showsSettings = false;
     private final BlockPos bePos;
     private Component title = Component.empty();
+    private boolean canQuitSettings;
 
-    public LoreGui(LoreFile file, BlockPos bePos) {
-        super(Component.translatable(LoreTranslation.FILE_NAME.key(file)));
+    public LoreGui(@Nullable LoreFile file, BlockPos bePos) {
+        super(Component.literal("Lore Block"));
         this.file = file;
         this.bePos = bePos;
-        this.title = Component.translatable(LoreTranslation.FILE_NAME.key(file));
+        this.showsSettings = file == null;
+        this.canQuitSettings = file != null;
+        this.title = file != null ? Component.translatable(LoreTranslation.FILE_NAME.key(file)) : Component.translatable("lore.gui.settings");
     }
 
     @Override
@@ -88,7 +91,8 @@ public class LoreGui extends Screen {
                 .bounds(getListX() + 8, 8, 100, 20)
                 .build());
 
-        this.settingsButton = this.addRenderableWidget(IconButton.builder(ResourceLocation.fromNamespaceAndPath(IgleeModpackUtilities.MODID,"textures/gui/settings.png"), btn->showsSettings = !showsSettings)
+        if (canQuitSettings)
+            this.addRenderableWidget(IconButton.builder(ResourceLocation.fromNamespaceAndPath(IgleeModpackUtilities.MODID,"textures/gui/settings.png"), btn->showsSettings = !showsSettings)
                 .pos(getListX() + getListWidth() - 20,getPanelY() + 4)
                 .build());
 

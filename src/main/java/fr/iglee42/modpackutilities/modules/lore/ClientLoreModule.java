@@ -64,6 +64,6 @@ public class ClientLoreModule implements IProgressHandler {
 
     public void openLoreGui(ResourceLocation fileId, BlockPos bePos){
         Optional<LoreFile> file = getLoreFile(fileId);
-        file.ifPresent(f-> Minecraft.getInstance().setScreen(new LoreGui(f,bePos)));
+        Minecraft.getInstance().setScreen(new LoreGui(file.orElse(null),bePos));
     }
 }

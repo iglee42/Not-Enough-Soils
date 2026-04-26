@@ -29,8 +29,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.event.AddReloadListenerEvent;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModList;
@@ -107,6 +109,7 @@ public class LoreModule extends Module {
         modEventBus.addListener(this::registerRegistries);
         modEventBus.addListener(this::register);
         if (FMLEnvironment.dist.isClient()) modEventBus.addListener(this::registerRender);
+        if (FMLEnvironment.dist.isClient()) modEventBus.addListener(this::addToCreativeTab);
         LoreRegistries.register(modEventBus);
         forgeEventBus.addListener(this::registerReloadListener);
         forgeEventBus.addListener(this::playerLogin);
@@ -178,6 +181,11 @@ public class LoreModule extends Module {
             NET_INSTANCE.send(PacketDistributor.PLAYER.with(()->sp), new SyncLoreFilesPacket(files.values().stream().toList()));
             NET_INSTANCE.send(PacketDistributor.PLAYER.with(()->sp), new SyncLoreProgressPacket(LoreProgressManager.get().getProgress(sp)));
         }
+    }
+
+    private void addToCreativeTab(BuildCreativeModeTabContentsEvent event){
+        if (event.getTabKey().equals(CreativeModeTabs.OP_BLOCKS) && event.hasPermissions())
+            event.accept(LoreRegistries.LORE_BLOCK_ITEM);
     }
 
 
