@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.util.FastColor;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 
@@ -51,7 +52,7 @@ public class LoreEntityBlockRenderer implements BlockEntityRenderer<LoreEntityBl
 
         EntityModel<?> model = lvrenderer.getModel();
         VertexConsumer vertexBuilder = bufferSource.getBuffer(RenderType.entityTranslucent(renderer.getTextureLocation(entity)));
-        model.renderToBuffer(poseStack, vertexBuilder, LightTexture.FULL_BRIGHT,packedOverlay,9/16f,1f,1f,9/16f);
+        model.renderToBuffer(poseStack, vertexBuilder, LightTexture.FULL_BRIGHT,packedOverlay, FastColor.ARGB32.colorFromFloat(9/16f,1f,1f,9/16f));
 
         poseStack.popPose();
     }
