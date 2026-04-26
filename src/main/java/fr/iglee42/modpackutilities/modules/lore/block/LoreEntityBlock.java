@@ -34,7 +34,7 @@ public class LoreEntityBlock extends Block implements EntityBlock {
     public InteractionResult use(BlockState p_60503_, Level level, BlockPos pos, Player p_60506_, InteractionHand p_60507_, BlockHitResult p_60508_) {
         if (level.isClientSide){
             if (level.getBlockEntity(pos) instanceof LoreEntityBlockEntity be){
-                ClientLoreModule.getInstance().openLoreGui(be.getFileId());
+                ClientLoreModule.getInstance().openLoreGui(be.getFileId(),pos);
             }
         }
         return InteractionResult.sidedSuccess(level.isClientSide);

@@ -36,6 +36,6 @@ public record StageReward(String stageId) implements LoreReward {
 
     @Override
     public @NotNull Component getTitle() {
-        return Component.literal("Obtain stage : " + stageId());
+        return Component.translatable("lore.reward.stage",stageId());
     }
 }

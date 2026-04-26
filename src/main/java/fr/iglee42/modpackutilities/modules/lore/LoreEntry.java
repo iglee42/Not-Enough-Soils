@@ -64,7 +64,7 @@ public record  LoreEntry(ResourceLocation id, List<String> lines, List<LoreRequi
         Optional<LoreEntry> previousEntry = getPreviousEntry();
         if (previousEntry.isEmpty())
             return true;
-        return getProgressHandler(player.level().isClientSide).getProgress(player).hasUnlockedEntry(file.get().id(), previousEntry.get().id());
+        return previousEntry.get().isUnlocked(player);
     }
 
     public boolean isUnlocked(Player player) {

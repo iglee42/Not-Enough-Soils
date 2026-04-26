@@ -38,6 +38,6 @@ public record StageRequirement(String stageId) implements LoreRequirement {
 
     @Override
     public @NotNull Component getTitle() {
-        return Component.literal("Obtain stage : " + stageId());
+        return Component.translatable("lore.requirements.stage", stageId());
     }
 }

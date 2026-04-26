@@ -7,6 +7,7 @@ import dev.ftb.mods.ftbquests.api.FTBQuestsAPI;
 import dev.ftb.mods.ftbquests.quest.BaseQuestFile;
 import dev.ftb.mods.ftbquests.quest.QuestObject;
 import dev.ftb.mods.ftbquests.quest.QuestObjectBase;
+import fr.iglee42.igleelib.api.utils.ModsUtils;
 import fr.iglee42.modpackutilities.compat.ftb.quests.FTBQuestsHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
@@ -37,7 +38,7 @@ public record CompletedQuestObjectRequirement(String objectId) implements LoreRe
     public @NotNull Component getTitle() {
         BaseQuestFile file = FTBQuestsAPI.api().getQuestFile(ServerLifecycleHooks.getCurrentServer() == null);
         QuestObject qo = file.get(QuestObjectBase.parseCodeString(objectId()));
-        if (qo == null) return Component.literal("Complete unknown quest object " + objectId());
-        return Component.literal("Complete " + qo.getObjectType().name().toLowerCase()+ " : " + qo.getTitle().getString());
+        if (qo == null) return Component.translatable("lore.requirements.unknown_quest_object", objectId());
+        return Component.translatable("lore.requirements.quest_object" , ModsUtils.getUpperName(qo.getObjectType().name().toLowerCase(),"_"), qo.getTitle());
     }
 }

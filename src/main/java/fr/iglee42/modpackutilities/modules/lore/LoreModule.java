@@ -7,6 +7,7 @@ import fr.iglee42.modpackutilities.compat.ftb.lib.FTBLibraryHelper;
 import fr.iglee42.modpackutilities.compat.kubejs.KubeJSHelper;
 import fr.iglee42.modpackutilities.modules.lore.client.LoreEntityBlockRenderer;
 import fr.iglee42.modpackutilities.modules.lore.client.LoreEntityRenderer;
+import fr.iglee42.modpackutilities.modules.lore.network.ChangeLoreFilePacket;
 import fr.iglee42.modpackutilities.modules.lore.network.SyncLoreFilesPacket;
 import fr.iglee42.modpackutilities.modules.lore.network.SyncLoreProgressPacket;
 import fr.iglee42.modpackutilities.modules.lore.network.UnlockLoreEntryPacket;
@@ -87,6 +88,11 @@ public class LoreModule extends Module {
                 .encoder(UnlockLoreEntryPacket::toBytes)
                 .decoder(UnlockLoreEntryPacket::new)
                 .consumerMainThread(UnlockLoreEntryPacket::handle)
+                .add();
+        net.messageBuilder(ChangeLoreFilePacket.class, id(), NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ChangeLoreFilePacket::toBytes)
+                .decoder(ChangeLoreFilePacket::new)
+                .consumerMainThread(ChangeLoreFilePacket::handle)
                 .add();
     }
 

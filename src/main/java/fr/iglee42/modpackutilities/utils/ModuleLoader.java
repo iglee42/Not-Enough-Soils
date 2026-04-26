@@ -55,7 +55,7 @@ public class ModuleLoader {
     public enum Modules{
         SOILS,
         COMPRESSED,
-        LORE(true)
+        LORE
         ;
 
         private final boolean disabled;

@@ -1,47 +1,37 @@
 package fr.iglee42.modpackutilities.modules.lore.network;
 
 import fr.iglee42.modpackutilities.IgleeModpackUtilities;
-import fr.iglee42.modpackutilities.modules.lore.LoreEntry;
 import fr.iglee42.modpackutilities.modules.lore.LoreFile;
 import fr.iglee42.modpackutilities.modules.lore.LoreModule;
-import fr.iglee42.modpackutilities.modules.lore.progress.LoreProgress;
+import fr.iglee42.modpackutilities.modules.lore.block.entity.LoreEntityBlockEntity;
 import fr.iglee42.modpackutilities.modules.lore.progress.LoreProgressManager;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.Optional;
 import java.util.function.Supplier;
 
-public class UnlockLoreEntryPacket {
+public class ChangeLoreFilePacket {
 
     private final ResourceLocation fileId;
-    private final ResourceLocation entryId;
-    private final boolean force;
+    private final BlockPos bePos;
 
-    public UnlockLoreEntryPacket(ResourceLocation fileId, ResourceLocation entryId) {
+    public ChangeLoreFilePacket(ResourceLocation fileId, BlockPos bePos) {
         this.fileId = fileId;
-        this.entryId = entryId;
-        this.force = false;
+        this.bePos = bePos;
     }
 
-    public UnlockLoreEntryPacket(ResourceLocation fileId, ResourceLocation entryId, boolean force) {
-        this.fileId = fileId;
-        this.entryId = entryId;
-        this.force = force;
-    }
-
-    public UnlockLoreEntryPacket(FriendlyByteBuf buf) {
+    public ChangeLoreFilePacket(FriendlyByteBuf buf) {
         this.fileId = buf.readResourceLocation();
-        this.entryId = buf.readResourceLocation();
-        this.force = buf.readBoolean();
+        this.bePos = buf.readBlockPos();
     }
 
     public void toBytes(FriendlyByteBuf buf) {
         buf.writeResourceLocation(fileId);
-        buf.writeResourceLocation(entryId);
-        buf.writeBoolean(force);
+        buf.writeBlockPos(bePos);
     }
 
     public boolean handle(Supplier<NetworkEvent.Context> supplier) {
@@ -62,12 +52,10 @@ public class UnlockLoreEntryPacket {
                 return;
             }
 
-            if (file.getEntry(entryId).isEmpty()) return;
-            if (force && file.getEntry(entryId).get().getPreviousEntry().isPresent()) return;
-
-            LoreProgressManager manager = LoreProgressManager.get();
-            if (force) manager.forceUnlockEntry(player,file,entryId);
-            else manager.tryUnlockEntry(player,file,entryId);
+            if (player.isCreative() && player.hasPermissions(2) && player.level().getBlockEntity(bePos) instanceof LoreEntityBlockEntity be){
+                be.setFileId(file.id());
+                player.level().sendBlockUpdated(bePos,be.getBlockState(),be.getBlockState(), Block.UPDATE_ALL);
+            }
         });
         return true;
     }

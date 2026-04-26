@@ -1,11 +1,14 @@
 package fr.iglee42.modpackutilities.modules.lore.client;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import fr.iglee42.igleelib.api.utils.MouseUtil;
 import fr.iglee42.modpackutilities.IgleeModpackUtilities;
+import fr.iglee42.modpackutilities.client.widgets.IconButton;
 import fr.iglee42.modpackutilities.modules.lore.ClientLoreModule;
 import fr.iglee42.modpackutilities.modules.lore.LoreEntry;
 import fr.iglee42.modpackutilities.modules.lore.LoreFile;
 import fr.iglee42.modpackutilities.modules.lore.LoreModule;
+import fr.iglee42.modpackutilities.modules.lore.network.ChangeLoreFilePacket;
 import fr.iglee42.modpackutilities.modules.lore.network.UnlockLoreEntryPacket;
 import fr.iglee42.modpackutilities.modules.lore.progress.LoreProgress;
 import net.minecraft.ChatFormatting;
@@ -13,8 +16,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.LockIconButton;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
@@ -23,6 +28,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,7 +49,6 @@ public class LoreGui extends Screen {
     private static final int GUI_WIDTH_REDUCTION = 100;
     private static final int GUI_HEIGHT_REDUCTION = 25;
 
-    // Textures (change only these paths/sizes when you add your assets)
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(IgleeModpackUtilities.MODID, "textures/gui/lore/background.png");
 
 
@@ -56,16 +61,20 @@ public class LoreGui extends Screen {
 
     private Button doneButton;
     private Button unlockButton;
+    private IconButton settingsButton;
     private double scrollAmount;
     private int contentHeight;
     private int totalScrollableHeight;
     private LoreEntry nextUnlockable;
+    private boolean showsSettings = false;
+    private final BlockPos bePos;
+    private Component title = Component.empty();
 
-    public LoreGui(LoreFile file) {
+    public LoreGui(LoreFile file, BlockPos bePos) {
         super(Component.translatable(LoreTranslation.FILE_NAME.key(file)));
         this.file = file;
-        IgleeModpackUtilities.getModule(LoreModule.class).info("{}",file.id());
-
+        this.bePos = bePos;
+        this.title = Component.translatable(LoreTranslation.FILE_NAME.key(file));
     }
 
     @Override
@@ -77,6 +86,10 @@ public class LoreGui extends Screen {
 
         this.unlockButton = this.addWidget(Button.builder(Component.literal("Complete entry"), button -> unlockNextEntry())
                 .bounds(getListX() + 8, 8, 100, 20)
+                .build());
+
+        this.settingsButton = this.addRenderableWidget(IconButton.builder(ResourceLocation.fromNamespaceAndPath(IgleeModpackUtilities.MODID,"textures/gui/settings.png"), btn->showsSettings = !showsSettings)
+                .pos(getListX() + getListWidth() - 20,getPanelY() + 4)
                 .build());
 
         this.updateUnlockButton();
@@ -99,10 +112,48 @@ public class LoreGui extends Screen {
         int listWidth = getListWidth();
         int listHeight = getListHeight();
 
-        renderEntries(guiGraphics, listX, listY, listWidth, listHeight, mouseX, mouseY, partialTick);
+        if (!showsSettings) {
+            renderEntries(guiGraphics, listX, listY, listWidth, listHeight, mouseX, mouseY, partialTick);
+            title = Component.translatable(LoreTranslation.FILE_NAME.key(file));
+        } else {
+            renderFilesForSettings(guiGraphics,listX,listY,listWidth,listHeight);
+            title = Component.translatable("lore.gui.settings");
+        }
         renderScrollbar(guiGraphics, listX, listY, listWidth, listHeight);
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
+    }
+
+    private void renderFilesForSettings(GuiGraphics guiGraphics, int listX, int listY, int listWidth, int listHeight) {
+        if (this.totalScrollableHeight > listHeight) {
+            listWidth = listWidth - 4;
+        }
+        this.contentHeight = 0;
+        for (int i = 0; i < ClientLoreModule.getInstance().getLoreFiles().size(); i++) {
+            this.contentHeight += ENTRY_HEADER_HEIGHT + ENTRY_SPACING;
+        }
+
+        this.totalScrollableHeight = LIST_CONTENT_TOP_PADDING + this.contentHeight + LIST_CONTENT_TOP_PADDING;
+
+        this.scrollAmount = Mth.clamp(this.scrollAmount, 0.0D, getMaxScroll(listHeight));
+
+        guiGraphics.enableScissor(listX, listY, listX + listWidth, listY + listHeight);
+
+
+        int y = listY + LIST_CONTENT_TOP_PADDING - (int) this.scrollAmount;
+        for (LoreFile entryFile : ClientLoreModule.getInstance().getLoreFiles().values()) {
+            blitNineSliceFast(guiGraphics,TEXTURE,listX,y ,listWidth,ENTRY_HEADER_HEIGHT,4,4,12,12,12,0);
+            Component selectedComponent = Component.translatable("lore.gui.selected");
+            int titleMaxWidth = Math.max(20, listX + listWidth - font.width(selectedComponent) - 4);
+            Component titleComponent = Component.literal(" ").append(Component.translatable(LoreTranslation.FILE_NAME.key(entryFile)));
+            String titleText = this.font.plainSubstrByWidth(titleComponent.getString(), titleMaxWidth);
+            guiGraphics.drawString(this.font, titleText, listX + 4, y + 4, 0xffffff, false);
+            if (entryFile == file){
+                guiGraphics.drawString(this.font,selectedComponent,listX + listWidth - font.width(selectedComponent) - 4,y+4,ChatFormatting.GREEN.getColor(),false);
+            }
+            y += ENTRY_HEADER_HEIGHT + ENTRY_SPACING;
+        }
+        guiGraphics.disableScissor();
     }
 
     private void renderEntries(GuiGraphics guiGraphics, int listX, int listY, int listWidth, int listHeight, int mouseX, int mouseY, float partialTick) {
@@ -142,7 +193,7 @@ public class LoreGui extends Screen {
 
 
         int y = listY + LIST_CONTENT_TOP_PADDING - (int) this.scrollAmount;
-        guiGraphics.blitNineSlicedSized(ResourceLocation.fromNamespaceAndPath(IgleeModpackUtilities.MODID, "textures/gui/lore/inner_back.png"),listX,y - LIST_CONTENT_TOP_PADDING,listWidth,totalScrollableHeight,4,12,12,0,0,12,12);
+        blitNineSliceFast(guiGraphics,TEXTURE,listX,y - LIST_CONTENT_TOP_PADDING,listWidth,totalScrollableHeight,4,4,12,12,12,0);
         for (LoreEntry entry : unlockedEntries) {
             int entryHeight = getEntryHeight(entry, listWidth, unlockedEntries);
             boolean collapsed = isCollapsed(entry, unlockedEntries);
@@ -339,26 +390,39 @@ public class LoreGui extends Screen {
         }
 
         int y = listY + LIST_CONTENT_TOP_PADDING - (int) this.scrollAmount;
-        List<LoreEntry> unlockedEntries = getUnlockedEntries();
-        int playButtonX = getPlayButtonX(listX, listWidth);
+        if (!showsSettings) {
+            List<LoreEntry> unlockedEntries = getUnlockedEntries();
+            int playButtonX = getPlayButtonX(listX, listWidth);
 
-        for (LoreEntry entry : unlockedEntries) {
-            int entryHeight = getEntryHeight(entry, listWidth, unlockedEntries);
-            int playButtonY = y + 2;
-            SoundEvent sound = entry.voiceLocation().flatMap(BuiltInRegistries.SOUND_EVENT::getOptional).orElse(SoundEvents.EMPTY);
-            if (mouseY >= playButtonY && mouseY <= playButtonY + ENTRY_PLAY_BUTTON_HEIGHT &&
-                    mouseX >= playButtonX && mouseX <= playButtonX + ENTRY_PLAY_BUTTON_WIDTH && sound != SoundEvents.EMPTY) {
-                playVoice(entry);
-                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-                return true;
-            }
+            for (LoreEntry entry : unlockedEntries) {
+                int entryHeight = getEntryHeight(entry, listWidth, unlockedEntries);
+                int playButtonY = y + 2;
+                SoundEvent sound = entry.voiceLocation().flatMap(BuiltInRegistries.SOUND_EVENT::getOptional).orElse(SoundEvents.EMPTY);
+                if (mouseY >= playButtonY && mouseY <= playButtonY + ENTRY_PLAY_BUTTON_HEIGHT &&
+                        mouseX >= playButtonX && mouseX <= playButtonX + ENTRY_PLAY_BUTTON_WIDTH && sound != SoundEvents.EMPTY) {
+                    playVoice(entry);
+                    Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                    return true;
+                }
 
-            if (mouseY >= y && mouseY <= y + ENTRY_HEADER_HEIGHT) {
-                this.collapsedEntries.put(entry.id(), !isCollapsed(entry, unlockedEntries));
-                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-                return true;
+                if (mouseY >= y && mouseY <= y + ENTRY_HEADER_HEIGHT) {
+                    this.collapsedEntries.put(entry.id(), !isCollapsed(entry, unlockedEntries));
+                    Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                    return true;
+                }
+                y += entryHeight;
             }
-            y += entryHeight;
+        } else {
+            for (LoreFile file : ClientLoreModule.getInstance().getLoreFiles().values()) {
+                int entryHeight = ENTRY_HEADER_HEIGHT + ENTRY_SPACING;
+                if (mouseY >= y && mouseY <= y + ENTRY_HEADER_HEIGHT) {
+                    LoreModule.NET_INSTANCE.sendToServer(new ChangeLoreFilePacket(file.id(),bePos));
+                    Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                    onClose();
+                    return true;
+                }
+                y += entryHeight;
+            }
         }
         return false;
     }
@@ -458,10 +522,57 @@ public class LoreGui extends Screen {
     }
 
     private void drawStretchedTexture(GuiGraphics guiGraphics, int x, int y, int width, int height) {
-        guiGraphics.blitNineSlicedSized(TEXTURE, x, y, width,height, 4,12,12,0,0,12,12);
+        blitNineSliceFast(guiGraphics,TEXTURE, x, y, width,height, 4,4,12,12,0,0);
+    }
+
+    public static void blitNineSliceFast(
+            GuiGraphics g,
+            ResourceLocation texture,
+            int x, int y,
+            int width, int height,
+            int cornerW, int cornerH,
+            int texW, int texH,
+            int u, int v
+    ) {
+        //RenderSystem.setShaderTexture(0, texture);
+
+        int centerW = width - cornerW * 2;
+        int centerH = height - cornerH * 2;
+
+        int uRight = u + texW - cornerW;
+        int vBottom = v + texH - cornerH;
+
+        // coins
+        g.blit(texture, x, y, u, v, cornerW, cornerH);
+        g.blit(texture, x + width - cornerW, y, uRight, v, cornerW, cornerH);
+        g.blit(texture, x, y + height - cornerH, u, vBottom, cornerW, cornerH);
+        g.blit(texture, x + width - cornerW, y + height - cornerH, uRight, vBottom, cornerW, cornerH);
+
+        // top / bottom
+        g.blit(texture, x + cornerW, y, centerW, cornerH,
+                u + cornerW, v, texW - cornerW * 2, cornerH,256,256);
+
+        g.blit(texture, x + cornerW, y + height - cornerH, centerW, cornerH,
+                u + cornerW, vBottom, texW - cornerW * 2, cornerH,256,256);
+
+        // left / right
+        g.blit(texture, x, y + cornerH, cornerW, centerH,
+                u, v + cornerH, cornerW, texH - cornerH * 2,256,256);
+
+        g.blit(texture, x + width - cornerW, y + cornerH, cornerW, centerH,
+                uRight, v + cornerH, cornerW, texH - cornerH * 2,256,256);
+
+        // center
+        g.blit(texture, x + cornerW, y + cornerH, centerW, centerH,
+                u + cornerW, v + cornerH, texW - cornerW * 2, texH - cornerH * 2,256,256);
     }
 
     private void updateUnlockButton() {
+        if (unlockButton != null && showsSettings){
+            this.unlockButton.visible = false;
+            this.unlockButton.active = false;
+            return;
+        }
         this.nextUnlockable = findNextUnlockable();
         Player player = this.minecraft != null ? this.minecraft.player : null;
         boolean canUnlock = this.nextUnlockable != null && this.nextUnlockable.canFulfillRequirements(player);
@@ -482,7 +593,7 @@ public class LoreGui extends Screen {
         LoreEntry previous = null;
         for (LoreEntry entry : this.file.entries()) {
             if (entry.getPreviousEntry().isEmpty()) {
-                if (!entry.isUnlocked(player)) LoreModule.NET_INSTANCE.sendToServer(new UnlockLoreEntryPacket(this.file.id(), entry.id()));
+                if (!entry.isUnlocked(player)) LoreModule.NET_INSTANCE.sendToServer(new UnlockLoreEntryPacket(this.file.id(), entry.id(),true));
                 previous = entry;
                 continue;
             }
@@ -492,7 +603,7 @@ public class LoreGui extends Screen {
                 continue;
             }
 
-            if (previous != null && !progress.hasUnlockedEntry(this.file.id(), previous.id())) {
+            if (previous != null && !previous.isUnlocked(player)) {
                 return null;
             }
 

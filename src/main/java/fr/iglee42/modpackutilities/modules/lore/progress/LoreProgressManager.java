@@ -81,6 +81,16 @@ public class LoreProgressManager extends SavedData implements IProgressHandler {
         });
     }
 
+    public boolean forceUnlockEntry(Player player, LoreFile file, ResourceLocation entryId){
+        return change(player,progress->{
+            Optional<LoreEntry> entryOpt = file.getEntry(entryId);
+            if (entryOpt.isEmpty()) return false;
+            LoreEntry entry = entryOpt.get();
+            entry.rewards().forEach(r->r.execute(player));
+            return progress.unlockEntry(file.id(),entryId);
+        });
+    }
+
     public boolean change(Player player, Function<LoreProgress,Boolean> function){
         LoreProgress progress = getProgress(player);
         if (function.apply(progress)){

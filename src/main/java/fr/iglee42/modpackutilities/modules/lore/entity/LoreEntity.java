@@ -106,7 +106,7 @@ public class LoreEntity extends Entity {
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
         if (player.level().isClientSide && level().getBlockEntity(getBEPos()) instanceof LoreEntityBlockEntity be){
-            ClientLoreModule.getInstance().openLoreGui(be.getFileId());
+            ClientLoreModule.getInstance().openLoreGui(be.getFileId(),getBEPos());
         }
         return InteractionResult.sidedSuccess(player.level().isClientSide);
     }

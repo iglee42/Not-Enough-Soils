@@ -1,0 +1,34 @@
+{
+	"id": "test:test_2",
+	"entries":[
+		{
+			"id": "test:test_lore_1",
+			"lines": [
+				"text.lore.lore_1.line_0",
+				"text.lore.lore_1.line_1",
+				"text.lore.lore_1.line_2"
+			],
+			"requirements":[{
+				"type": "lore:item",
+				"item": "minecraft:redstone_block",
+				"count": 64
+			}],
+			"voice_location": "lore:test_lore_1"
+		},
+		{
+			"id": "test:test_lore_2_2",
+			"lines": [
+				"text.lore.lore_1.line_0",
+				"text.lore.lore_1.line_1",
+				"text.lore.lore_1.line_2"
+			],
+			"requirements":[{
+				"type": "lore:item",
+				"item": "minecraft:gold_ingot",
+				"count": 32
+			}],
+			"voice_location": "lore:test_lore_1"
+		}
+	],
+	"finished": "text.lore.finished"
+}
