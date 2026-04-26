@@ -40,4 +40,6 @@ public interface LoreRequirement {
     static <R extends LoreRequirement> void writeList(RegistryFriendlyByteBuf buffer,List<R> list){
         STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buffer, (List<LoreRequirement>) list);
     }
+
+    String toString();
 }

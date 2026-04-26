@@ -11,6 +11,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import org.jetbrains.annotations.NotNull;
 import net.minecraft.world.item.ItemStack;
 
 public record ItemRequirement(Item item, int count) implements LoreRequirement {
@@ -38,5 +39,10 @@ public record ItemRequirement(Item item, int count) implements LoreRequirement {
     @Override
     public RequirementType<? extends LoreRequirement> getType() {
         return LoreModule.ITEM_REQUIREMENT;
+    }
+
+    @Override
+    public @NotNull String toString() {
+        return count() + "x " + item.getDescription().getString();
     }
 }

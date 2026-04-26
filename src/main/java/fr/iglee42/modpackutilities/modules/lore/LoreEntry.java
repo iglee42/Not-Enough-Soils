@@ -14,21 +14,21 @@ import java.util.List;
 import java.util.Optional;
 
 public record  LoreEntry(ResourceLocation id, List<String> lines, List<LoreRequirement> requirements,
-                        ResourceLocation voiceLocation) {
+                        Optional<ResourceLocation> voiceLocation) {
 
     public static final Codec<LoreEntry> CODEC = RecordCodecBuilder.create(instance->
             instance.group(
                     ResourceLocation.CODEC.fieldOf("id").forGetter(o -> o.id),
                     Codec.STRING.listOf().fieldOf("lines").forGetter(o -> o.lines),
                     LoreRequirement.CODEC.listOf().fieldOf("requirements").forGetter(o -> o.requirements),
-                    ResourceLocation.CODEC.fieldOf("voice_location").forGetter(o -> o.voiceLocation)
+                    ResourceLocation.CODEC.optionalFieldOf("voice_location").forGetter(o -> o.voiceLocation)
             ).apply(instance,LoreEntry::new));
 
     public static LoreEntry read(FriendlyByteBuf buf){
         var id = buf.readResourceLocation();
         var lines = buf.readUtf().lines().toList();
         var requirements = LoreRequirement.readList(buf);
-        var voiceLocation = buf.readResourceLocation();
+        var voiceLocation = buf.readOptional(FriendlyByteBuf::readResourceLocation);
         return new LoreEntry(id,lines,requirements,voiceLocation);
     }
 
@@ -58,16 +58,14 @@ public record  LoreEntry(ResourceLocation id, List<String> lines, List<LoreRequi
         Optional<LoreEntry> previousEntry = getPreviousEntry();
         if (previousEntry.isEmpty())
             return true;
-        getProgressHandler(player.level().isClientSide).getProgress(player).hasUnlockedEntry(file.get().id(), previousEntry.get().id());
-        return true;
+        return getProgressHandler(player.level().isClientSide).getProgress(player).hasUnlockedEntry(file.get().id(), previousEntry.get().id());
     }
 
     public boolean isUnlocked(Player player) {
         Optional<LoreFile> file = getLoreFile();
         if (file.isEmpty()) return false;
         if (getPreviousEntry().isEmpty()) return true;
-        getProgressHandler(player.level().isClientSide).getProgress(player).hasUnlockedEntry(file.get().id(), id());
-        return true;
+        return getProgressHandler(player.level().isClientSide).getProgress(player).hasUnlockedEntry(file.get().id(), id());
     }
 
     public boolean canFulfillRequirements(Player player) {
@@ -82,6 +80,6 @@ public record  LoreEntry(ResourceLocation id, List<String> lines, List<LoreRequi
         buf.writeResourceLocation(id);
         buf.writeUtf(String.join("\n", lines));
         LoreRequirement.writeList(buf, requirements);
-        buf.writeResourceLocation(voiceLocation);
+        buf.writeOptional(voiceLocation,FriendlyByteBuf::writeResourceLocation);
     }
 }
