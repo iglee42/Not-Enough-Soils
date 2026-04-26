@@ -10,6 +10,6 @@
   "lore.requirements.quest_object": "Complete %s : %s",
   "lore.requirements.item": "%sx %s",
   "lore.requirements.stage": "Obtain Stage : %s",
-  "lore.gui.settings": "Settings",
+  "lore.gui.settings": "Select a Lore File",
   "lore.gui.selected": "Selected"
 }
