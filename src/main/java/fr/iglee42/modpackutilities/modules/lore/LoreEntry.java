@@ -9,6 +9,9 @@ import fr.iglee42.modpackutilities.modules.lore.requirements.LoreRequirement;
 import fr.iglee42.modpackutilities.modules.lore.rewards.LoreReward;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 
@@ -16,13 +19,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public record  LoreEntry(ResourceLocation id, List<String> lines, List<LoreRequirement> requirements,
+public record  LoreEntry(ResourceLocation id, List<Component> lines, List<LoreRequirement> requirements,
                         Optional<ResourceLocation> voiceLocation, List<LoreReward> rewards, boolean hiddenRewards) {
+
+    public static final Codec<Component> COMPONENT_CODEC = Codec.withAlternative(
+            ComponentSerialization.CODEC,
+            Codec.STRING,
+            Component::translatable
+    );
 
     public static final Codec<LoreEntry> CODEC = RecordCodecBuilder.create(instance->
             instance.group(
                     ResourceLocation.CODEC.fieldOf("id").forGetter(o -> o.id),
-                    Codec.STRING.listOf().fieldOf("lines").forGetter(o -> o.lines),
+                    COMPONENT_CODEC.listOf().fieldOf("lines").forGetter(o -> o.lines),
                     LoreRequirement.CODEC.listOf().optionalFieldOf("requirements",new ArrayList<>()).forGetter(o -> o.requirements),
                     ResourceLocation.CODEC.optionalFieldOf("voice_location").forGetter(o -> o.voiceLocation),
                     LoreReward.CODEC.listOf().optionalFieldOf("rewards",new ArrayList<>()).forGetter(o -> o.rewards),
@@ -31,7 +40,7 @@ public record  LoreEntry(ResourceLocation id, List<String> lines, List<LoreRequi
 
     public static LoreEntry read(RegistryFriendlyByteBuf buf){
         var id = buf.readResourceLocation();
-        var lines = buf.readUtf().lines().toList();
+        var lines = ComponentSerialization.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf);
         var requirements = LoreRequirement.readList(buf);
         var voiceLocation = buf.readOptional(FriendlyByteBuf::readResourceLocation);
         var rewards = LoreReward.readList(buf);
@@ -89,7 +98,7 @@ public record  LoreEntry(ResourceLocation id, List<String> lines, List<LoreRequi
 
     public void write(RegistryFriendlyByteBuf buf){
         buf.writeResourceLocation(id);
-        buf.writeUtf(String.join("\n", lines));
+        ComponentSerialization.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buf,lines());
         LoreRequirement.writeList(buf, requirements);
         buf.writeOptional(voiceLocation,FriendlyByteBuf::writeResourceLocation);
         LoreReward.writeList(buf, rewards);

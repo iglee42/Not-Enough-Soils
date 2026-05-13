@@ -224,8 +224,8 @@ public class LoreGui extends Screen {
 
             if (!collapsed) {
                 int textY = y + ENTRY_HEADER_HEIGHT + ENTRY_CONTENT_MARGIN;
-                for (String line : entry.lines()) {
-                    for (var wrapped : this.font.split(Component.translatable(line), listWidth - 24)) {
+                for (Component line : entry.lines()) {
+                    for (var wrapped : this.font.split(line, listWidth - 24)) {
                         guiGraphics.drawString(this.font, wrapped, listX + 16, textY, 0xCFCFCF, false);
                         textY += LINE_HEIGHT;
                     }
@@ -291,8 +291,8 @@ public class LoreGui extends Screen {
         }
 
         int linesHeight = 0;
-        for (String line : entry.lines()) {
-            linesHeight += this.font.split(Component.translatable(line), listWidth - 24).size() * LINE_HEIGHT;
+        for (Component line : entry.lines()) {
+            linesHeight += this.font.split(line, listWidth - 24).size() * LINE_HEIGHT;
         }
         return height + ENTRY_CONTENT_MARGIN + linesHeight;
     }
