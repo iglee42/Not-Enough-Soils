@@ -3,6 +3,8 @@ package fr.iglee42.modpackutilities.modules.lore;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import fr.iglee42.modpackutilities.compat.ftb.lib.FTBLibraryHelper;
+import fr.iglee42.modpackutilities.compat.kubejs.KubeJSHelper;
 import fr.iglee42.modpackutilities.modules.lore.client.LoreEntityBlockRenderer;
 import fr.iglee42.modpackutilities.modules.lore.client.LoreEntityRenderer;
 import fr.iglee42.modpackutilities.modules.lore.network.SyncLoreFilesPacket;
@@ -12,6 +14,11 @@ import fr.iglee42.modpackutilities.modules.lore.progress.LoreProgressManager;
 import fr.iglee42.modpackutilities.modules.lore.requirements.ItemRequirement;
 import fr.iglee42.modpackutilities.modules.lore.requirements.LoreRequirement;
 import fr.iglee42.modpackutilities.modules.lore.requirements.RequirementType;
+import fr.iglee42.modpackutilities.compat.ftb.quests.FTBQuestsHelper;
+import fr.iglee42.modpackutilities.modules.lore.rewards.ItemReward;
+import fr.iglee42.modpackutilities.modules.lore.rewards.LoreReward;
+import fr.iglee42.modpackutilities.modules.lore.rewards.RewardType;
+import fr.iglee42.modpackutilities.modules.lore.rewards.XPReward;
 import fr.iglee42.modpackutilities.utils.Module;
 import fr.iglee42.modpackutilities.utils.ModuleLoader;
 import net.minecraft.core.Registry;
@@ -23,6 +30,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
@@ -42,8 +50,11 @@ import java.util.function.Supplier;
 public class LoreModule extends Module {
 
     public static Registry<RequirementType<? extends LoreRequirement>> LORE_REQUIREMENTS;
+    public static Registry<RewardType<? extends LoreReward>> LORE_REWARDS;
 
     public static RequirementType<ItemRequirement> ITEM_REQUIREMENT;
+    public static RewardType<ItemReward> ITEM_REWARD;
+    public static RewardType<XPReward> XP_REWARD;
 
     private final Map<ResourceLocation,LoreFile> files;
 
@@ -79,6 +90,9 @@ public class LoreModule extends Module {
         LoreRegistries.register(modEventBus);
         forgeEventBus.addListener(this::registerReloadListener);
         forgeEventBus.addListener(this::playerLogin);
+        if (ModList.get().isLoaded("ftblibrary")) FTBLibraryHelper.registerLore(modEventBus);
+        if (ModList.get().isLoaded("ftbquests")) FTBQuestsHelper.registerLore(modEventBus);
+        if (ModList.get().isLoaded("kubejs")) KubeJSHelper.registerLore(modEventBus);
         modEventBus.addListener(this::registerPackets);
     }
 
@@ -88,12 +102,20 @@ public class LoreModule extends Module {
 
     private void registerRegistries(NewRegistryEvent event){
         LORE_REQUIREMENTS = event.create(new RegistryBuilder<RequirementType<? extends LoreRequirement>>(LoreKeys.LORE_REQUIREMENT_KEY));
+        LORE_REWARDS = event.create(new RegistryBuilder<RewardType<? extends LoreReward>>(LoreKeys.LORE_REWARD_KEY));
     }
 
     private void register(RegisterEvent event){
         if (event.getRegistryKey().equals(LoreKeys.LORE_REQUIREMENT_KEY)){
                 ITEM_REQUIREMENT = new RequirementType<>(ItemRequirement.CODEC,ItemRequirement.STREAM_CODEC);
                 event.register(LoreKeys.LORE_REQUIREMENT_KEY,ResourceLocation.fromNamespaceAndPath(getName(),"item"),()->ITEM_REQUIREMENT);
+        }
+        if (event.getRegistryKey().equals(LoreKeys.LORE_REWARD_KEY)){
+            ITEM_REWARD = new RewardType<>(ItemReward.CODEC,ItemReward.STREAM_CODEC);
+
+            XP_REWARD = new RewardType<>(XPReward.CODEC,XPReward.STREAM_CODEC);
+            event.register(LoreKeys.LORE_REWARD_KEY,ResourceLocation.fromNamespaceAndPath(getName(),"item"),()->ITEM_REWARD);
+            event.register(LoreKeys.LORE_REWARD_KEY,ResourceLocation.fromNamespaceAndPath(getName(),"xp"),()->XP_REWARD);
         }
     }
 

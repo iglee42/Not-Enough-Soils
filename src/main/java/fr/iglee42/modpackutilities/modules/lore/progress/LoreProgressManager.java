@@ -7,7 +7,7 @@ import fr.iglee42.modpackutilities.modules.lore.LoreEntry;
 import fr.iglee42.modpackutilities.modules.lore.LoreFile;
 import fr.iglee42.modpackutilities.modules.lore.LoreModule;
 import fr.iglee42.modpackutilities.modules.lore.network.SyncLoreProgressPacket;
-import fr.iglee42.modpackutilities.utils.FTBTeamsHelper;
+import fr.iglee42.modpackutilities.compat.ftb.teams.FTBTeamsHelper;
 import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.UUIDUtil;
@@ -77,6 +77,7 @@ public class LoreProgressManager extends SavedData implements IProgressHandler {
             LoreEntry entry = entryOpt.get();
             if (!entry.isPreviousEntryUnlocked(player)) return false;
             if (!entry.canFulfillRequirements(player)) return false;
+            entry.rewards().forEach(r->r.execute(player));
             return progress.unlockEntry(file.id(),entryId);
         });
     }

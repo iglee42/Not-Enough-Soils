@@ -9,6 +9,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.List;
@@ -41,5 +42,5 @@ public interface LoreRequirement {
         STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buffer, (List<LoreRequirement>) list);
     }
 
-    String toString();
+    Component getTitle();
 }

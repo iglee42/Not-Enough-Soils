@@ -6,6 +6,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import fr.iglee42.modpackutilities.IgleeModpackUtilities;
+import jdk.jshell.Snippet;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -14,10 +15,7 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public record LoreFile(ResourceLocation id, Set<LoreEntry> entries) {
 
@@ -70,4 +68,10 @@ public record LoreFile(ResourceLocation id, Set<LoreEntry> entries) {
     }
 
 
+    public Optional<LoreEntry> getLastEntry() {
+        LinkedHashSet<LoreEntry> entries = (LinkedHashSet<LoreEntry>) this.entries;
+        if (entries.isEmpty())
+            return Optional.empty();
+        return Optional.of(entries.stream().reduce((first, second) -> second).orElseThrow());
+    }
 }

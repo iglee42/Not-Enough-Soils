@@ -124,8 +124,4 @@ public class LoreEntityBlockEntity extends BlockEntity {
         }
     }
 
-    @Override
-    public AABB getRenderBoundingBox() {
-        return super.getRenderBoundingBox().expandTowards(0,getYOffset() + 2,0);
-    }
 }

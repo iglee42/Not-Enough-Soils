@@ -1,4 +1,4 @@
-package fr.iglee42.modpackutilities.modules.lore.requirements;
+package fr.iglee42.modpackutilities.modules.lore.rewards;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -7,39 +7,39 @@ import fr.iglee42.modpackutilities.modules.lore.LoreModule;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
-import org.jetbrains.annotations.NotNull;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
-public record ItemRequirement(Item item, int count) implements LoreRequirement {
+public record ItemReward(Item item, int count) implements LoreReward {
 
-    public static final MapCodec<ItemRequirement> CODEC = RecordCodecBuilder.mapCodec(instance ->
+    public static final MapCodec<ItemReward> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(
                     BuiltInRegistries.ITEM.byNameCodec().fieldOf("item").forGetter(r -> r.item),
                     Codec.INT.fieldOf("count").forGetter(r -> r.count)
-            ).apply(instance, ItemRequirement::new)
+            ).apply(instance, ItemReward::new)
     );
 
-    public static final StreamCodec<RegistryFriendlyByteBuf,ItemRequirement> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.registry(Registries.ITEM),ItemRequirement::item,
-            ByteBufCodecs.INT,ItemRequirement::count,
-            ItemRequirement::new
+    public static final StreamCodec<RegistryFriendlyByteBuf,ItemReward> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.registry(Registries.ITEM),ItemReward::item,
+            ByteBufCodecs.INT, ItemReward::count,
+            ItemReward::new
     );
 
 
 
     @Override
-    public boolean test(Player player) {
-        return player.getInventory().countItem(item) >= count;
+    public void execute(Player player) {
+        player.getInventory().add(new ItemStack(item(),count()));
     }
 
     @Override
-    public RequirementType<? extends LoreRequirement> getType() {
-        return LoreModule.ITEM_REQUIREMENT;
+    public RewardType<? extends LoreReward> getType() {
+        return LoreModule.ITEM_REWARD;
     }
 
     @Override
