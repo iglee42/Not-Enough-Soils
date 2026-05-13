@@ -30,9 +30,9 @@ public record LoreFile(ResourceLocation id, Set<LoreEntry> entries) {
             LoreFile::read
     );
 
-    public static LoreFile read(FriendlyByteBuf f){
+    public static LoreFile read(RegistryFriendlyByteBuf f){
         ResourceLocation id = f.readResourceLocation();
-        LinkedHashSet<LoreEntry> entries = f.readCollection(LinkedHashSet::new,LoreEntry::read);
+        LinkedHashSet<LoreEntry> entries = f.readCollection(LinkedHashSet::new,buf->LoreEntry.read((RegistryFriendlyByteBuf) buf));
         return new LoreFile(id, entries);
     }
 
@@ -54,9 +54,9 @@ public record LoreFile(ResourceLocation id, Set<LoreEntry> entries) {
                 .map(Pair::getFirst);
     }
 
-    public void write(FriendlyByteBuf buf){
+    public void write(RegistryFriendlyByteBuf buf){
         buf.writeResourceLocation(id);
-        buf.writeCollection(entries, (b,e)->e.write(b));
+        buf.writeCollection(entries, (b,e)->e.write((RegistryFriendlyByteBuf) b));
     }
 
     public boolean entryExists(ResourceLocation entryId) {

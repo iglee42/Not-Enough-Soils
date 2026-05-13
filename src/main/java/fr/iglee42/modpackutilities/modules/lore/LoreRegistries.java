@@ -24,7 +24,7 @@ public class LoreRegistries {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, "lore");
     public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(Registries.ENTITY_TYPE, "lore");
 
-    public static final DeferredHolder<Block,LoreEntityBlock> LORE_BLOCK = BLOCKS.register("lore_entity_block", () -> new LoreEntityBlock(Block.Properties.ofFullCopy(Blocks.NETHERITE_BLOCK)));
+    public static final DeferredHolder<Block,LoreEntityBlock> LORE_BLOCK = BLOCKS.register("lore_block", () -> new LoreEntityBlock(Block.Properties.ofFullCopy(Blocks.NETHERITE_BLOCK)));
     public static final DeferredHolder<Item,BlockItem> LORE_BLOCK_ITEM = ITEMS.register("lore_block", () -> new BlockItem(LORE_BLOCK.get(),new Item.Properties()));
     public static final DeferredHolder<BlockEntityType<?>,BlockEntityType<LoreEntityBlockEntity>> BE_TYPE = BLOCK_ENTITIES.register("lore_entity_block_entity", () -> BlockEntityType.Builder.of(LoreEntityBlockEntity::new, LORE_BLOCK.get()).build(null));
     public static final DeferredHolder<EntityType<?>,EntityType<LoreEntity>> ENTITY = ENTITIES.register("lore_entity", () -> EntityType.Builder.of(LoreEntity::new, MobCategory.MISC).sized(0.75f, 1.75f).build("lore_entity"));

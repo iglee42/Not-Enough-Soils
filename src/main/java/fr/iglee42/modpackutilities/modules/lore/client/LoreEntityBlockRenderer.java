@@ -72,7 +72,7 @@ public class LoreEntityBlockRenderer implements BlockEntityRenderer<LoreEntityBl
 
         EntityModel<?> model = lvrenderer.getModel();
         VertexConsumer vertexBuilder = bufferSource.getBuffer(RenderType.entityTranslucent(renderer.getTextureLocation(entity)));
-        model.renderToBuffer(poseStack, vertexBuilder, LightTexture.FULL_BRIGHT,packedOverlay, FastColor.ARGB32.colorFromFloat(9/16f,1f,hasFinishedFile.get() ? 8/16f : 1f,9/16f));
+        model.renderToBuffer(poseStack, vertexBuilder, LightTexture.FULL_BRIGHT,packedOverlay, FastColor.ARGB32.colorFromFloat(9/16f,9/16f,1f,hasFinishedFile.get() ? 8/16f : 1f));
 
         poseStack.popPose();
     }

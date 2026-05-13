@@ -1,13 +1,11 @@
 package fr.iglee42.modpackutilities.modules.lore.client;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import fr.iglee42.igleelib.api.utils.MouseUtil;
 import fr.iglee42.modpackutilities.IgleeModpackUtilities;
 import fr.iglee42.modpackutilities.client.widgets.IconButton;
 import fr.iglee42.modpackutilities.modules.lore.ClientLoreModule;
 import fr.iglee42.modpackutilities.modules.lore.LoreEntry;
 import fr.iglee42.modpackutilities.modules.lore.LoreFile;
-import fr.iglee42.modpackutilities.modules.lore.LoreModule;
 import fr.iglee42.modpackutilities.modules.lore.network.ChangeLoreFilePacket;
 import fr.iglee42.modpackutilities.modules.lore.network.UnlockLoreEntryPacket;
 import fr.iglee42.modpackutilities.modules.lore.progress.LoreProgress;
@@ -16,7 +14,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.LockIconButton;
+import net.minecraft.client.gui.components.Renderable;
+import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.BlockPos;
@@ -51,6 +50,7 @@ public class LoreGui extends Screen {
     private static final int GUI_HEIGHT_REDUCTION = 25;
 
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(IgleeModpackUtilities.MODID, "textures/gui/lore/background.png");
+    protected static final WidgetSprites BUTTON_SPRITES = new WidgetSprites(ResourceLocation.withDefaultNamespace("widget/button"), ResourceLocation.withDefaultNamespace("widget/button_disabled"), ResourceLocation.withDefaultNamespace("widget/button_highlighted"));
 
 
     private static final int PANEL_TOP_PADDING = 26;
@@ -125,7 +125,9 @@ public class LoreGui extends Screen {
         }
         renderScrollbar(guiGraphics, listX, listY, listWidth, listHeight);
 
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        for(Renderable renderable : this.renderables) {
+            renderable.render(guiGraphics, mouseX, mouseY, partialTick);
+        }
     }
 
     private void renderFilesForSettings(GuiGraphics guiGraphics, int listX, int listY, int listWidth, int listHeight) {
@@ -208,7 +210,7 @@ public class LoreGui extends Screen {
             int playButtonX = getPlayButtonX(listX, listWidth);
             if (sound != SoundEvents.EMPTY) {
                 int playButtonY = y + 2;
-                guiGraphics.blitNineSliced(AbstractWidget.WIDGETS_LOCATION, playButtonX, playButtonY, ENTRY_PLAY_BUTTON_WIDTH, ENTRY_PLAY_BUTTON_HEIGHT, 20, 4, 200, 20, 0, 66+(MouseUtil.isMouseOver(mouseX,mouseY,playButtonX,playButtonY,ENTRY_PLAY_BUTTON_WIDTH,ENTRY_PLAY_BUTTON_HEIGHT) ? 20 : 0));
+                guiGraphics.blitSprite(BUTTON_SPRITES.get(true,MouseUtil.isMouseOver(mouseX,mouseY,playButtonX,playButtonY,ENTRY_PLAY_BUTTON_WIDTH,ENTRY_PLAY_BUTTON_HEIGHT)), playButtonX, playButtonY, ENTRY_PLAY_BUTTON_WIDTH, ENTRY_PLAY_BUTTON_HEIGHT);
                 guiGraphics.drawCenteredString(this.font, "Play", playButtonX + ENTRY_PLAY_BUTTON_WIDTH / 2, playButtonY + 2, 0xE0E0E0);
             } else {
                 playButtonX = listX + listWidth - 10;
@@ -621,7 +623,7 @@ public class LoreGui extends Screen {
             return;
         }
         collapsedEntries.put(getUnlockedEntries().getLast().id(),true);
-        PacketDistributor.sendToServer(new UnlockLoreEntryPacket(this.file.id(), this.nextUnlockable.id()));
+        PacketDistributor.sendToServer(new UnlockLoreEntryPacket(this.file.id(), this.nextUnlockable.id(),false));
     }
 
     @Override

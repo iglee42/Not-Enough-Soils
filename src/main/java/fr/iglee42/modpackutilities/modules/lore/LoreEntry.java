@@ -8,6 +8,7 @@ import fr.iglee42.modpackutilities.modules.lore.progress.LoreProgressManager;
 import fr.iglee42.modpackutilities.modules.lore.requirements.LoreRequirement;
 import fr.iglee42.modpackutilities.modules.lore.rewards.LoreReward;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 
@@ -28,7 +29,7 @@ public record  LoreEntry(ResourceLocation id, List<String> lines, List<LoreRequi
                     Codec.BOOL.optionalFieldOf("hidden_rewards",false).forGetter(o -> o.hiddenRewards)
                     ).apply(instance,LoreEntry::new));
 
-    public static LoreEntry read(FriendlyByteBuf buf){
+    public static LoreEntry read(RegistryFriendlyByteBuf buf){
         var id = buf.readResourceLocation();
         var lines = buf.readUtf().lines().toList();
         var requirements = LoreRequirement.readList(buf);
@@ -86,7 +87,7 @@ public record  LoreEntry(ResourceLocation id, List<String> lines, List<LoreRequi
         return !rewards.isEmpty() && !hiddenRewards;
     }
 
-    public void write(FriendlyByteBuf buf){
+    public void write(RegistryFriendlyByteBuf buf){
         buf.writeResourceLocation(id);
         buf.writeUtf(String.join("\n", lines));
         LoreRequirement.writeList(buf, requirements);

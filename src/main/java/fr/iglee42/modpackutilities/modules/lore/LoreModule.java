@@ -77,6 +77,7 @@ public class LoreModule extends Module {
         registrar.playToClient(SyncLoreFilesPacket.TYPE,SyncLoreFilesPacket.STREAM_CODEC,(payload,ctx)->SyncLoreFilesPacket.handle(ctx,payload));
         registrar.playToClient(SyncLoreProgressPacket.TYPE,SyncLoreProgressPacket.STREAM_CODEC,(payload,ctx)->SyncLoreProgressPacket.handle(ctx,payload));
         registrar.playToServer(UnlockLoreEntryPacket.TYPE,UnlockLoreEntryPacket.STREAM_CODEC,(payload,ctx)->UnlockLoreEntryPacket.handle(ctx,payload));
+        registrar.playToServer(ChangeLoreFilePacket.TYPE,ChangeLoreFilePacket.STREAM_CODEC,(payload,ctx)->ChangeLoreFilePacket.handle(ctx,payload));
     }
 
     private void registerRender(EntityRenderersEvent.RegisterRenderers event){
@@ -105,8 +106,8 @@ public class LoreModule extends Module {
     }
 
     private void registerRegistries(NewRegistryEvent event){
-        LORE_REQUIREMENTS = event.create(new RegistryBuilder<RequirementType<? extends LoreRequirement>>(LoreKeys.LORE_REQUIREMENT_KEY));
-        LORE_REWARDS = event.create(new RegistryBuilder<RewardType<? extends LoreReward>>(LoreKeys.LORE_REWARD_KEY));
+        LORE_REQUIREMENTS = event.create(new RegistryBuilder<>(LoreKeys.LORE_REQUIREMENT_KEY).sync(true));
+        LORE_REWARDS = event.create(new RegistryBuilder<>(LoreKeys.LORE_REWARD_KEY).sync(true));
     }
 
     private void register(RegisterEvent event){

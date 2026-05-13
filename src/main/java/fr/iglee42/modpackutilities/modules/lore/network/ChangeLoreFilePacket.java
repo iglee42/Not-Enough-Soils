@@ -4,41 +4,35 @@ import fr.iglee42.modpackutilities.IgleeModpackUtilities;
 import fr.iglee42.modpackutilities.modules.lore.LoreFile;
 import fr.iglee42.modpackutilities.modules.lore.LoreModule;
 import fr.iglee42.modpackutilities.modules.lore.block.entity.LoreEntityBlockEntity;
-import fr.iglee42.modpackutilities.modules.lore.progress.LoreProgressManager;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
+public record ChangeLoreFilePacket(ResourceLocation fileId,BlockPos bePos) implements CustomPacketPayload {
 
-public class ChangeLoreFilePacket {
+    public static final StreamCodec<RegistryFriendlyByteBuf,ChangeLoreFilePacket> STREAM_CODEC = StreamCodec.composite(
+            ResourceLocation.STREAM_CODEC,ChangeLoreFilePacket::fileId,
+            BlockPos.STREAM_CODEC,ChangeLoreFilePacket::bePos,
+            ChangeLoreFilePacket::new
+    );
 
-    private final ResourceLocation fileId;
-    private final BlockPos bePos;
+    public static final Type<ChangeLoreFilePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath("lore","change_lore_file"));
 
-    public ChangeLoreFilePacket(ResourceLocation fileId, BlockPos bePos) {
-        this.fileId = fileId;
-        this.bePos = bePos;
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 
-    public ChangeLoreFilePacket(FriendlyByteBuf buf) {
-        this.fileId = buf.readResourceLocation();
-        this.bePos = buf.readBlockPos();
-    }
-
-    public void toBytes(FriendlyByteBuf buf) {
-        buf.writeResourceLocation(fileId);
-        buf.writeBlockPos(bePos);
-    }
-
-    public boolean handle(Supplier<NetworkEvent.Context> supplier) {
-        NetworkEvent.Context context = supplier.get();
+    public static void handle(IPayloadContext context, ChangeLoreFilePacket payload) {
         context.enqueueWork(() -> {
-            ServerPlayer player = context.getSender();
-            if (player == null) {
+            Player unsafePlayer = context.player();
+            if (!(unsafePlayer instanceof ServerPlayer player)) {
                 return;
             }
 
@@ -47,17 +41,16 @@ public class ChangeLoreFilePacket {
                 return;
             }
 
-            LoreFile file = module.getFiles().get(fileId);
+            LoreFile file = module.getFiles().get(payload.fileId());
             if (file == null) {
                 return;
             }
 
-            if (player.isCreative() && player.hasPermissions(2) && player.level().getBlockEntity(bePos) instanceof LoreEntityBlockEntity be){
+            if (player.isCreative() && player.hasPermissions(2) && player.level().getBlockEntity(payload.bePos()) instanceof LoreEntityBlockEntity be){
                 be.setFileId(file.id());
-                player.level().sendBlockUpdated(bePos,be.getBlockState(),be.getBlockState(), Block.UPDATE_ALL);
+                player.level().sendBlockUpdated(payload.bePos(),be.getBlockState(),be.getBlockState(), Block.UPDATE_ALL);
             }
         });
-        return true;
     }
 
 }
