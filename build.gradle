@@ -127,14 +127,14 @@ dependencies {
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
     runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
 
-    implementation "com.blakebr0.cucumber:Cucumber:${minecraft_version}-${cucumber_version}"
-    implementation "com.blakebr0.mysticalagriculture:MysticalAgriculture:${minecraft_version}-${mystical_version}"
-    implementation "com.blakebr0.mysticalcustomization:MysticalCustomization:${minecraft_version}-${mscustomization_version}"
+    compileOnly "com.blakebr0.cucumber:Cucumber:${minecraft_version}-${cucumber_version}"
+    compileOnly "com.blakebr0.mysticalagriculture:MysticalAgriculture:${minecraft_version}-${mystical_version}"
+    compileOnly "com.blakebr0.mysticalcustomization:MysticalCustomization:${minecraft_version}-${mscustomization_version}"
 
-    implementation("dev.ftb.mods:ftb-library-neoforge:${ftb_library_version}") {transitive = false}
-    implementation("dev.ftb.mods:ftb-teams-neoforge:${ftb_teams_version}") {transitive = false}
-    implementation "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
-    implementation "dev.latvian.mods:kubejs-neoforge:${kubejs_version}"
+    compileOnly("dev.ftb.mods:ftb-library-neoforge:${ftb_library_version}") {transitive = false}
+    compileOnly("dev.ftb.mods:ftb-teams-neoforge:${ftb_teams_version}") {transitive = false}
+    compileOnly "dev.ftb.mods:ftb-quests-neoforge:${ftb_quests_version}"
+    compileOnly "dev.latvian.mods:kubejs-neoforge:${kubejs_version}"
     runtimeOnly "dev.latvian.mods:rhino:2101.2.7-build.82"
     runtimeOnly "dev.architectury:architectury-neoforge:13.0.8"
 
