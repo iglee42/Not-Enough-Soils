@@ -6,6 +6,7 @@ import fr.iglee42.modpackutilities.IgleeModpackUtilities;
 import fr.iglee42.modpackutilities.modules.lore.LoreEntry;
 import fr.iglee42.modpackutilities.modules.lore.LoreFile;
 import fr.iglee42.modpackutilities.modules.lore.LoreModule;
+import fr.iglee42.modpackutilities.modules.lore.network.PlayLoreEntrySoundPacket;
 import fr.iglee42.modpackutilities.modules.lore.network.SyncLoreProgressPacket;
 import fr.iglee42.modpackutilities.compat.ftb.teams.FTBTeamsHelper;
 import net.minecraft.Util;
@@ -76,6 +77,9 @@ public class LoreProgressManager extends SavedData implements IProgressHandler {
             LoreEntry entry = entryOpt.get();
             if (!entry.isPreviousEntryUnlocked(player)) return false;
             if (!entry.canFulfillRequirements(player)) return false;
+            if (LoreModule.NET_INSTANCE != null){
+                LoreModule.NET_INSTANCE.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player), new PlayLoreEntrySoundPacket(file.id(),entry.id()));
+            }
             entry.rewards().forEach(r->r.execute(player));
             return progress.unlockEntry(file.id(),entryId);
         });
@@ -86,6 +90,9 @@ public class LoreProgressManager extends SavedData implements IProgressHandler {
             Optional<LoreEntry> entryOpt = file.getEntry(entryId);
             if (entryOpt.isEmpty()) return false;
             LoreEntry entry = entryOpt.get();
+            if (LoreModule.NET_INSTANCE != null){
+                LoreModule.NET_INSTANCE.send(PacketDistributor.PLAYER.with(()-> (ServerPlayer) player), new PlayLoreEntrySoundPacket(file.id(),entry.id()));
+            }
             entry.rewards().forEach(r->r.execute(player));
             return progress.unlockEntry(file.id(),entryId);
         });
