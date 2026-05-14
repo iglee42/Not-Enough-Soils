@@ -7,10 +7,7 @@ import fr.iglee42.modpackutilities.compat.ftb.lib.FTBLibraryHelper;
 import fr.iglee42.modpackutilities.compat.kubejs.KubeJSHelper;
 import fr.iglee42.modpackutilities.modules.lore.client.LoreEntityBlockRenderer;
 import fr.iglee42.modpackutilities.modules.lore.client.LoreEntityRenderer;
-import fr.iglee42.modpackutilities.modules.lore.network.ChangeLoreFilePacket;
-import fr.iglee42.modpackutilities.modules.lore.network.SyncLoreFilesPacket;
-import fr.iglee42.modpackutilities.modules.lore.network.SyncLoreProgressPacket;
-import fr.iglee42.modpackutilities.modules.lore.network.UnlockLoreEntryPacket;
+import fr.iglee42.modpackutilities.modules.lore.network.*;
 import fr.iglee42.modpackutilities.modules.lore.progress.LoreProgressManager;
 import fr.iglee42.modpackutilities.modules.lore.requirements.ItemRequirement;
 import fr.iglee42.modpackutilities.modules.lore.requirements.LoreRequirement;
@@ -76,6 +73,7 @@ public class LoreModule extends Module {
         PayloadRegistrar registrar = event.registrar(getName());
         registrar.playToClient(SyncLoreFilesPacket.TYPE,SyncLoreFilesPacket.STREAM_CODEC,(payload,ctx)->SyncLoreFilesPacket.handle(ctx,payload));
         registrar.playToClient(SyncLoreProgressPacket.TYPE,SyncLoreProgressPacket.STREAM_CODEC,(payload,ctx)->SyncLoreProgressPacket.handle(ctx,payload));
+        registrar.playToClient(PlayLoreEntrySoundPacket.TYPE,PlayLoreEntrySoundPacket.STREAM_CODEC,(payload, ctx)->PlayLoreEntrySoundPacket.handle(ctx,payload));
         registrar.playToServer(UnlockLoreEntryPacket.TYPE,UnlockLoreEntryPacket.STREAM_CODEC,(payload,ctx)->UnlockLoreEntryPacket.handle(ctx,payload));
         registrar.playToServer(ChangeLoreFilePacket.TYPE,ChangeLoreFilePacket.STREAM_CODEC,(payload,ctx)->ChangeLoreFilePacket.handle(ctx,payload));
     }
