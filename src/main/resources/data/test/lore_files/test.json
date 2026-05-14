@@ -23,7 +23,7 @@
 				"item": "minecraft:diamond",
 				"count": 64
 			}],
-			"voice_location": "lore:test_lore_1"
+			"voice_location": "minecraft:entity.experience_orb.pickup"
 		},
 		{
 			"id": "test:test_lore_2",
