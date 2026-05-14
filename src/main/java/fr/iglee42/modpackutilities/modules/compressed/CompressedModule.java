@@ -25,8 +25,10 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.ForgeRegistry;
 import net.minecraftforge.registries.RegisterEvent;
@@ -238,27 +240,29 @@ public class CompressedModule extends Module {
 
             COMPRESSED.stream().filter(Predicate.not(CompressedBlock::isDisabled)).forEach(c->{
                 String prefix = !c.getPrefix().isBlank() ? c.getPrefix() + "_" : "";
-                blockstate(prefix+"compressed_" + c.getBlock().getPath() + "_"+finalI,c.getRotation().getVariants(getName() + ":block/"+prefix+"compressed_" + c.getBlock().getPath() + "_"+finalI));
-                model("block",prefix+"compressed_" + c.getBlock().getPath() + "_"+finalI,c.isSingleTexture() ? "block/cube_all": c.getCustomParent().toString(),c.getTextures().keySet().stream().map(
-                        k->{
-                            ResourceLocation location = getTexture(c, k);
-                            if (location != null){
-                                String out = location.getNamespace() + "/" + location.getPath() + "/"+finalI;
-                                return new TextureKey(k,getName() + ":block/"+out);
+                if (FMLEnvironment.dist == Dist.CLIENT){
+                    blockstate(prefix+"compressed_" + c.getBlock().getPath() + "_"+finalI,c.getRotation().getVariants(getName() + ":block/"+prefix+"compressed_" + c.getBlock().getPath() + "_"+finalI));
+                    model("block",prefix+"compressed_" + c.getBlock().getPath() + "_"+finalI,c.isSingleTexture() ? "block/cube_all": c.getCustomParent().toString(),c.getTextures().keySet().stream().map(
+                            k->{
+                                ResourceLocation location = getTexture(c, k);
+                                if (location != null){
+                                    String out = location.getNamespace() + "/" + location.getPath() + "/"+finalI;
+                                    return new TextureKey(k,getName() + ":block/"+out);
+                                }
+                                return null;
                             }
-                            return null;
-                        }
-                ).filter(Objects::nonNull).toArray(TextureKey[]::new),c.getRenderType().name().toLowerCase());
-                model("item",prefix+"compressed_" + c.getBlock().getPath() + "_"+finalI,getName() + ":block/"+prefix+"compressed_" + c.getBlock().getPath() + "_"+finalI,new TextureKey[]{},"");
-                if (c.getBlockForTier(finalI) != null){
-                    Map<String, Object> ctx = Map.of(
-                            "type", c.hasDisplayName() ? c.getDisplayName() : ModsUtils.getUpperName(c.getBlock().getPath(),"_"),
-                            "tier", finalI
-                    );
+                    ).filter(Objects::nonNull).toArray(TextureKey[]::new),c.getRenderType().name().toLowerCase());
+                    model("item",prefix+"compressed_" + c.getBlock().getPath() + "_"+finalI,getName() + ":block/"+prefix+"compressed_" + c.getBlock().getPath() + "_"+finalI,new TextureKey[]{},"");
+                    if (c.getBlockForTier(finalI) != null){
+                        Map<String, Object> ctx = Map.of(
+                                "type", c.hasDisplayName() ? c.getDisplayName() : ModsUtils.getUpperName(c.getBlock().getPath(),"_"),
+                                "tier", finalI
+                        );
 
-                    lang(c.getBlockForTier(finalI).getDescriptionId(), LangFormatter.format(langExpression,ctx));
+                        lang(c.getBlockForTier(finalI).getDescriptionId(), LangFormatter.format(langExpression,ctx));
+                    }
+
                 }
-
 
                 if (generateRecipes){
                     {
