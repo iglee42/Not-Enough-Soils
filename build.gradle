@@ -131,14 +131,14 @@ dependencies {
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}")
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
 
-    implementation fg.deobf("com.blakebr0.cucumber:Cucumber:${minecraft_version}-${cucumber_version}")
-    implementation fg.deobf("com.blakebr0.mysticalagriculture:MysticalAgriculture:${minecraft_version}-${mystical_version}")
-    implementation fg.deobf("com.blakebr0.mysticalcustomization:MysticalCustomization:${minecraft_version}-${mscustomization_version}")
+    compileOnly fg.deobf("com.blakebr0.cucumber:Cucumber:${minecraft_version}-${cucumber_version}")
+    compileOnly fg.deobf("com.blakebr0.mysticalagriculture:MysticalAgriculture:${minecraft_version}-${mystical_version}")
+    compileOnly fg.deobf("com.blakebr0.mysticalcustomization:MysticalCustomization:${minecraft_version}-${mscustomization_version}")
 
-    implementation fg.deobf("dev.ftb.mods:ftb-library-forge:${ftb_library_version}")
-    implementation fg.deobf("dev.ftb.mods:ftb-teams-forge:${ftb_teams_version}")
-    implementation fg.deobf("dev.ftb.mods:ftb-quests-forge:${ftb_quests_version}")
-    implementation fg.deobf("dev.latvian.mods:kubejs-forge:${kubejs_version}")
+    compileOnly fg.deobf("dev.ftb.mods:ftb-library-forge:${ftb_library_version}")
+    compileOnly fg.deobf("dev.ftb.mods:ftb-teams-forge:${ftb_teams_version}")
+    compileOnly fg.deobf("dev.ftb.mods:ftb-quests-forge:${ftb_quests_version}")
+    compileOnly fg.deobf("dev.latvian.mods:kubejs-forge:${kubejs_version}")
     runtimeOnly fg.deobf("dev.latvian.mods:rhino-forge:2001.2.3-build.6")
     runtimeOnly fg.deobf("dev.architectury:architectury-forge:9.2.14")
 
